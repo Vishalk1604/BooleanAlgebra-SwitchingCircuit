@@ -1,0 +1,1697 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Boolean Algebra &amp; Switching Circuits</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400;0,600;0,800;1,400&family=Martian+Mono:wght@400;600&family=STIX+Two+Text:ital,wght@0,500;0,700;1,500;1,700&family=Unbounded:wght@500;700&display=swap">
+<style>
+/* Layout: a 16:9 "night lab" deck — one slide per screen, sized in rem from the viewport so it scales like a real deck; stacks to one scrolling column on phones */
+:root {
+  --bg: #12102E; --bg-2: #1A1742; --surface: #1F1C4D; --surface-2: #29256A; --line: #3A367A;
+  --fg: #EEF0FF; --muted: #A9ABD8; --accent: #8B93FF; --accent-ink: #100E2C; --accent-text: #A5B4FC;
+  --on: #FACC15; --on-ink: #1E1B4B; --off: #FB7185; --good: #34D399; --current: #22D3EE;
+  --wire: #9EA3E6; --label: #FDE68A; --spark: #FFFFFF; --grid: rgba(165, 180, 252, .07); --on-tint: #2D2A6B;
+  --shadow: 0 1.2rem 3rem rgba(4, 3, 20, .45);
+  --f-display: "Unbounded", "Bahnschrift", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --f-math: "STIX Two Text", "Cambria Math", Cambria, "Times New Roman", serif;
+  --f-mono: "Martian Mono", Consolas, "Courier New", monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #F4F4FC; --bg-2: #EAEAF8; --surface: #FFFFFF; --surface-2: #EEF0FF; --line: #D6D8F2;
+    --fg: #1E1B4B; --muted: #5B5A8A; --accent: #4F46E5; --accent-ink: #FFFFFF; --accent-text: #4F46E5;
+    --on: #FACC15; --on-ink: #1E1B4B; --off: #E11D48; --good: #059669; --current: #0891B2;
+    --wire: #2A2766; --label: #4F46E5; --spark: #FFFFFF; --grid: rgba(79, 70, 229, .07); --on-tint: #FEF6D3;
+    --shadow: 0 1rem 2.5rem rgba(30, 27, 75, .10);
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #F4F4FC; --bg-2: #EAEAF8; --surface: #FFFFFF; --surface-2: #EEF0FF; --line: #D6D8F2;
+  --fg: #1E1B4B; --muted: #5B5A8A; --accent: #4F46E5; --accent-ink: #FFFFFF; --accent-text: #4F46E5;
+  --on: #FACC15; --on-ink: #1E1B4B; --off: #E11D48; --good: #059669; --current: #0891B2;
+  --wire: #2A2766; --label: #4F46E5; --spark: #FFFFFF; --grid: rgba(79, 70, 229, .07); --on-tint: #FEF6D3;
+  --shadow: 0 1rem 2.5rem rgba(30, 27, 75, .10);
+  color-scheme: light;
+}
+
+@property --ang { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+
+html { font-size: clamp(12px, min(calc(100vw / 106), calc(100vh / 60)), 26px); height: 100%; }
+body { height: 100%; margin: 0; overflow: hidden; background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 1.25rem; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+[hidden] { display: none !important; }
+button { font: inherit; color: inherit; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+p { margin: 0; }
+:focus-visible { outline: 3px solid var(--on); outline-offset: 3px; border-radius: .4rem; }
+
+/* ---------- chrome ---------- */
+#bgfx { position: fixed; inset: 0; z-index: 0; pointer-events: none; view-transition-name: bgfx; }
+.topbar { position: fixed; z-index: 6; top: 0; left: 0; right: 0; padding: calc(env(safe-area-inset-top, 0px) + .9rem) max(16px, 3.2rem) .4rem; display: flex; align-items: center; gap: 1.6rem; view-transition-name: topbar; pointer-events: none; }
+.brand { display: flex; align-items: center; gap: .7rem; font-size: .95rem; color: var(--muted); white-space: nowrap; }
+.tog { display: inline-block; width: 2.2rem; height: 1.15rem; border-radius: 1rem; background: var(--on); position: relative; flex: none; }
+.tog::after { content: ""; position: absolute; right: .14rem; top: .14rem; width: .87rem; height: .87rem; border-radius: 50%; background: var(--surface); box-shadow: 0 0 0 .1rem var(--on-ink); }
+.progress { flex: 1; height: .28rem; border-radius: 1rem; background: var(--line); position: relative; overflow: visible; }
+.progress i { position: absolute; inset: 0 auto 0 0; width: var(--p, 0%); border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--current)); transition: width .6s cubic-bezier(.2, .8, .2, 1); }
+.progress i::after { content: ""; position: absolute; right: -.35rem; top: 50%; width: .7rem; height: .7rem; margin-top: -.35rem; border-radius: 50%; background: var(--on); box-shadow: 0 0 .8rem var(--on); }
+.counter { font-family: var(--f-mono); font-size: .8rem; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.counter b { color: var(--fg); font-weight: 600; }
+.controls { position: fixed; z-index: 6; right: max(16px, 2.4rem); bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem); display: flex; gap: .5rem; view-transition-name: controls; }
+.ctl { width: 2.6rem; height: 2.6rem; border-radius: .8rem; border: 1px solid var(--line); background: color-mix(in srgb, var(--surface) 85%, transparent); backdrop-filter: blur(8px); display: grid; place-items: center; cursor: pointer; color: var(--fg); transition: transform .2s, background .2s; }
+.ctl:hover { transform: translateY(-2px); background: var(--surface-2); }
+.ctl svg { width: 1.1rem; height: 1.1rem; }
+.hint { position: fixed; z-index: 5; left: max(16px, 3.2rem); bottom: calc(env(safe-area-inset-bottom, 0px) + 1.6rem); font-size: .85rem; color: var(--muted); view-transition-name: hint; }
+.hint kbd { font-family: var(--f-mono); font-size: .75rem; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: .3rem; padding: .05rem .35rem; background: var(--surface); }
+
+/* ---------- deck ---------- */
+.deck { position: fixed; inset: 0; z-index: 1; }
+.slide { position: absolute; inset: 0; display: none; overflow-y: auto; overflow-x: hidden; padding: calc(env(safe-area-inset-top, 0px) + 3.6rem) max(16px, 3.2rem) calc(env(safe-area-inset-bottom, 0px) + 4.4rem); }
+.slide.active { display: flex; flex-direction: column; }
+.inner { width: 100%; max-width: 100rem; margin: auto; display: flex; flex-direction: column; gap: 1.6rem; min-height: 0; }
+.s-head { display: flex; align-items: center; gap: 1rem; }
+.s-head h2 { font-family: var(--f-display); font-weight: 700; font-size: 2.35rem; letter-spacing: -.01em; line-height: 1.1; }
+.s-head .sub { margin-left: auto; color: var(--muted); font-size: 1rem; text-align: right; max-width: 30rem; }
+.qnum { font-family: var(--f-display); font-weight: 700; font-size: 1.1rem; background: var(--on); color: var(--on-ink); border-radius: .6rem; padding: .35rem .6rem; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 1.2rem; padding: 1.5rem; min-width: 0; }
+.card.tint { background: var(--surface-2); }
+.tag { display: inline-flex; align-items: center; gap: .4rem; font-size: .78rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; padding: .38rem .8rem; border-radius: 2rem; background: var(--accent); color: var(--accent-ink); width: max-content; }
+.tag.good { background: var(--good); color: var(--on-ink); }
+.tag.on { background: var(--on); color: var(--on-ink); }
+.muted { color: var(--muted); }
+.small { font-size: 1rem; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.6rem; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.2rem; }
+.stack { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+.row { display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; }
+
+/* math */
+.m { font-family: var(--f-math); font-weight: 500; white-space: nowrap; }
+.m i { font-style: italic; }
+.big-m { font-size: 2.1rem; color: var(--accent-text); }
+s.cancel { text-decoration: none; position: relative; color: var(--off); }
+s.cancel::after { content: ""; position: absolute; left: -.1em; right: -.1em; top: 52%; height: .1em; background: var(--off); border-radius: 1em; transform: scaleX(var(--strike, 1)); transform-origin: left; transition: transform .45s .25s; }
+mark.hlm { background: color-mix(in srgb, var(--on) 30%, transparent); color: inherit; border-radius: .3em; padding: 0 .12em; }
+
+/* chips */
+.chips { display: flex; flex-wrap: wrap; gap: .6rem; }
+.chip { display: inline-flex; align-items: center; gap: .55rem; padding: .3rem .35rem .3rem .85rem; border-radius: 2rem; border: 1px solid var(--line); background: var(--surface-2); cursor: pointer; transition: transform .15s, border-color .2s; }
+.chip:hover { transform: translateY(-1px); border-color: var(--accent); }
+.chip .cv { font-family: var(--f-math); font-style: italic; font-weight: 700; font-size: 1.3rem; }
+.chip .cn { font-size: .95rem; font-weight: 600; }
+.chip .cb { font-family: var(--f-mono); font-weight: 600; font-size: .95rem; width: 1.9rem; height: 1.9rem; border-radius: 50%; display: grid; place-items: center; background: var(--line); color: var(--fg); transition: background .25s, color .25s, box-shadow .25s; }
+.chip[aria-pressed="true"] .cb { background: var(--on); color: var(--on-ink); box-shadow: 0 0 1rem color-mix(in srgb, var(--on) 60%, transparent); }
+.chip .cb svg { width: 1rem; height: 1rem; }
+.bit { display: inline-flex; align-items: center; gap: .5rem; font-weight: 800; font-size: 1rem; padding: .3rem .8rem; border-radius: 2rem; background: var(--line); color: var(--fg); transition: background .3s, color .3s, box-shadow .3s; white-space: nowrap; }
+.bit::before { content: ""; width: .6rem; height: .6rem; border-radius: 50%; background: currentColor; opacity: .6; }
+.bit.is1 { background: var(--on); color: var(--on-ink); box-shadow: 0 0 1.2rem color-mix(in srgb, var(--on) 55%, transparent); }
+
+/* circuits */
+.circuit { position: relative; min-width: 0; }
+.circuit svg { display: block; width: 100%; height: auto; max-height: var(--ch, 15rem); margin-inline: auto; overflow: visible; }
+.circuit figcaption, .cap { font-size: .9rem; color: var(--muted); text-align: center; margin-top: .3rem; }
+.csvg .w { stroke: var(--wire); stroke-width: 4; stroke-linecap: round; transition: stroke .3s; }
+.csvg .w.live { stroke: var(--current); }
+.csvg .e { stroke: var(--spark); stroke-width: 3.2; stroke-linecap: round; stroke-dasharray: .1 15; opacity: 0; transition: opacity .3s; }
+.csvg .e.live { opacity: .95; animation: flow .8s linear infinite; }
+@keyframes flow { to { stroke-dashoffset: -15.1; } }
+.csvg .nd.hl .w:not(.live) { stroke: var(--off); }
+.csvg .nd.hl .lbl { fill: var(--off); }
+.csvg .nd.focus { filter: drop-shadow(0 0 7px var(--on)); }
+.csvg .nd.focus .w:not(.live) { stroke: var(--on); }
+.csvg .sw { cursor: pointer; outline: none; }
+.csvg .sw .hit { fill: transparent; }
+.csvg .sw .lev { stroke: var(--fg); stroke-width: 5; stroke-linecap: round; transform: rotate(-27deg); transition: transform .4s cubic-bezier(.5, 1.7, .4, 1), stroke .3s; }
+.csvg .sw.closed .lev { transform: rotate(0deg); stroke: var(--current); }
+.csvg .sw:hover .lev, .csvg .sw:focus-visible .lev { stroke: var(--on); }
+.csvg .sw:focus-visible .hit { fill: color-mix(in srgb, var(--on) 14%, transparent); }
+.csvg .ct { fill: var(--surface); stroke: var(--wire); stroke-width: 3.5; }
+.csvg .lbl { fill: var(--label); font: italic 700 30px var(--f-math); }
+.csvg .bat line { stroke: var(--wire); stroke-width: 4; stroke-linecap: round; }
+.csvg .bat line.neg { stroke-width: 9; }
+.csvg .bat text { fill: var(--label); font: 700 20px var(--f-body); text-anchor: middle; }
+.csvg .lamp .glass { fill: transparent; stroke: var(--wire); stroke-width: 4; transition: fill .3s; }
+.csvg .lamp .fil { stroke: var(--wire); stroke-width: 3.5; stroke-linecap: round; }
+.csvg .lamp .halo { fill: var(--on); opacity: 0; transition: opacity .4s; }
+.csvg .lamp .rays line { stroke: var(--on); stroke-width: 4; stroke-linecap: round; }
+.csvg .lamp .rays { opacity: 0; transform: scale(.6); transition: opacity .3s, transform .5s cubic-bezier(.5, 1.8, .4, 1); }
+.csvg .lamp.on .glass { fill: var(--on); }
+.csvg .lamp.on .halo { opacity: .3; animation: halo 1.8s ease-in-out infinite; }
+.csvg .lamp.on .rays { opacity: 1; transform: scale(1); }
+@keyframes halo { 50% { opacity: .12; } }
+.c-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1rem; align-items: end; }
+
+/* builds */
+.js .pending { filter: blur(.45rem); opacity: .22; pointer-events: none; user-select: none; }
+.js .pending s.cancel { --strike: 0; }
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .9rem; }
+.steps li { display: grid; grid-template-columns: 2.4rem 1fr; gap: .9rem; align-items: start; transition: filter .5s, opacity .5s; }
+.steps .n { width: 2.4rem; height: 2.4rem; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--accent-ink); font-weight: 800; }
+.steps .ex { font-family: var(--f-math); font-size: 1.45rem; line-height: 1.3; display: flex; flex-wrap: wrap; column-gap: .45rem; }
+.steps .ex i { font-style: italic; }
+.steps .why { color: var(--muted); font-size: .98rem; font-style: italic; }
+.sol-actions { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: auto; }
+.btn { display: inline-flex; align-items: center; gap: .5rem; padding: .55rem 1rem; border-radius: .8rem; border: 1px solid var(--line); background: var(--surface-2); cursor: pointer; font-weight: 700; font-size: .95rem; transition: transform .15s, background .2s; }
+.btn:hover { transform: translateY(-1px); background: var(--line); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+.btn svg { width: 1rem; height: 1rem; }
+.answer { position: relative; border-radius: 1.1rem; padding: 1.1rem 1.3rem; background: var(--on-tint); isolation: isolate; }
+.answer::before { content: ""; position: absolute; inset: -2px; z-index: -1; border-radius: inherit; background: conic-gradient(from var(--ang), var(--on), var(--current), var(--accent), var(--on)); animation: spin 4s linear infinite; }
+.answer::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: var(--on-tint); }
+@keyframes spin { to { --ang: 360deg; } }
+.answer .lead { font-weight: 800; }
+.answer .m { font-size: 1.5rem; }
+
+/* question slides */
+.q-grid { display: grid; grid-template-columns: 1fr 1.08fr; gap: 1.6rem; min-height: 0; }
+.q-card { display: flex; flex-direction: column; gap: 1rem; }
+.q-card p.q { font-size: 1.3rem; }
+.sol { display: flex; flex-direction: column; gap: 1rem; }
+
+/* tables */
+.tt { border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; width: 100%; border: 1px solid var(--line); border-radius: .8rem; overflow: hidden; }
+.tt th, .tt td { padding: .32rem .5rem; text-align: center; border-bottom: 1px solid var(--line); }
+.tt tr:last-child td { border-bottom: 0; }
+.tt th { background: var(--accent); color: var(--accent-ink); font-family: var(--f-math); font-weight: 700; font-size: 1.1rem; }
+.tt th i { font-style: italic; }
+.tt td { font-family: var(--f-mono); font-size: .92rem; cursor: pointer; transition: background .25s; }
+.tt td.o1 { color: var(--on-ink); background: var(--on); font-weight: 600; }
+.tt td.m { font-family: var(--f-math); font-size: 1.05rem; }
+.tt tr.here td { background: color-mix(in srgb, var(--current) 22%, transparent); }
+.tt tr.here td.o1 { background: var(--on); box-shadow: inset 0 0 0 3px var(--current); }
+.tt tr.here td:first-child { box-shadow: inset .3rem 0 0 var(--current); }
+.tt.h td:first-child, .tt.h th:first-child { font-family: var(--f-math); font-style: italic; font-weight: 700; }
+.tt.h td.here { background: color-mix(in srgb, var(--current) 22%, transparent); }
+.tt.h td.here.o1 { background: var(--on); box-shadow: inset 0 0 0 3px var(--current); }
+
+/* venn */
+.venn { width: 100%; max-width: 15rem; height: auto; display: block; margin-inline: auto; overflow: visible; }
+.venn .u { fill: var(--surface); stroke: var(--wire); stroke-width: 3; }
+.venn .rg { fill: var(--accent); opacity: 0; transition: opacity .45s; }
+.venn .rg.on { opacity: .75; }
+.venn .ol { fill: none; stroke: var(--wire); stroke-width: 3; }
+.venn text { fill: var(--fg); font: italic 700 26px var(--f-math); }
+.venn .dot { fill: var(--on); stroke: var(--on-ink); stroke-width: 3; transition: transform .5s cubic-bezier(.5, 1.6, .4, 1); filter: drop-shadow(0 0 6px var(--on)); }
+
+/* kmap */
+.kmap { display: grid; grid-template-columns: auto repeat(var(--cols), var(--cw, 4.2rem)); grid-template-rows: auto repeat(var(--rows), var(--chh, 3.4rem)); width: max-content; max-width: 100%; position: relative; }
+.kmap .kc { font-family: var(--f-mono); font-weight: 600; font-size: .9rem; color: var(--accent-text); display: grid; place-items: center; padding: .3rem .6rem; }
+.kmap .corner { font-family: var(--f-math); font-style: italic; color: var(--muted); font-size: 1rem; }
+.kmap .cell { border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; font-family: var(--f-mono); font-weight: 600; font-size: 1.25rem; position: relative; color: var(--muted); transition: background .25s, color .25s; }
+.kmap .cell.v1 { color: var(--fg); }
+.kmap .cell .mi { position: absolute; right: .3rem; bottom: .15rem; font-size: .62rem; color: var(--muted); font-weight: 400; }
+.kmap.noidx .mi { display: none; }
+.kmap.edit .cell { cursor: pointer; }
+.kmap.edit .cell:hover { background: var(--surface-2); }
+.kmap .cell.here { background: color-mix(in srgb, var(--current) 25%, var(--surface)); box-shadow: inset 0 0 0 3px var(--current); }
+.kmap .ov { grid-column: 2 / -1; grid-row: 2 / -1; position: relative; pointer-events: none; z-index: 1; }
+.kmap .grp { position: absolute; border: 3px solid var(--gc); background: color-mix(in srgb, var(--gc) 16%, transparent); border-radius: .9rem; animation: grp-in .6s cubic-bezier(.3, 1.6, .5, 1) backwards; }
+@keyframes grp-in { from { transform: scale(.6); opacity: 0; } }
+.terms { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.term { font-family: var(--f-math); font-size: 1.15rem; padding: .2rem .7rem; border-radius: 2rem; border: 2px solid var(--gc); background: color-mix(in srgb, var(--gc) 14%, transparent); }
+.term i { font-style: italic; }
+
+/* misc components */
+.flip { perspective: 70rem; cursor: pointer; }
+.flip-in { position: relative; height: 100%; transition: transform .8s cubic-bezier(.3, 1.4, .5, 1); transform-style: preserve-3d; }
+.flip.flipped .flip-in { transform: rotateY(180deg); }
+.face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 1.1rem; display: flex; flex-direction: column; justify-content: center; gap: .3rem; padding: 1rem 1.1rem; border: 1px solid var(--line); background: var(--surface); }
+.face.back { transform: rotateY(180deg); background: var(--on-tint); border-color: var(--on); }
+.face .ln { font-size: .82rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.face .m { font-size: 1.6rem; white-space: normal; }
+.gate-card { display: grid; grid-template-columns: 13rem 1fr; gap: .4rem 1.2rem; align-items: center; }
+.gate-card svg { width: 100%; height: auto; overflow: visible; }
+.gate-card .gb { stroke: var(--wire); stroke-width: 4; fill: var(--surface-2); }
+.gate-card .gw { stroke: var(--wire); stroke-width: 4; stroke-linecap: round; transition: stroke .3s; }
+.gate-card .gw.live { stroke: var(--current); filter: drop-shadow(0 0 4px var(--current)); }
+.gate-card .led { fill: var(--line); transition: fill .3s; }
+.gate-card .led.live { fill: var(--on); filter: drop-shadow(0 0 6px var(--on)); }
+.gate-card h3 { font-family: var(--f-display); font-size: 1.45rem; }
+.badge-u { font-size: .65rem; font-weight: 800; letter-spacing: .12em; background: var(--good); color: var(--on-ink); border-radius: 1rem; padding: .15rem .5rem; vertical-align: middle; margin-left: .4rem; }
+
+/* title */
+.slide.title .inner { gap: 1.2rem; }
+.title-grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 2rem; align-items: center; }
+.display { font-family: var(--f-display); font-weight: 700; font-size: 4.4rem; line-height: 1.02; letter-spacing: -.02em; display: flex; flex-direction: column; gap: .3rem; }
+.display .hl { color: var(--on); font-size: 3rem; }
+.lede { font-size: 1.45rem; color: var(--muted); max-width: 38rem; margin-top: 1rem; }
+.fields { display: flex; flex-wrap: wrap; gap: .6rem 1.4rem; margin-top: 1rem; font-size: 1rem; color: var(--muted); }
+.fields label { display: flex; align-items: center; gap: .5rem; }
+.fld { font: inherit; color: var(--fg); background: transparent; border: 0; border-bottom: 2px dashed var(--line); padding: .15rem .2rem; min-width: 0; width: 13rem; transition: border-color .2s; }
+.fld:focus { outline: none; border-bottom: 2px solid var(--on); }
+.fld::placeholder { color: color-mix(in srgb, var(--muted) 70%, transparent); }
+.team h3 { font-size: .85rem; letter-spacing: .25em; text-transform: uppercase; color: var(--on); margin-bottom: .6rem; }
+.team-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; }
+.member { display: grid; grid-template-columns: auto 1fr; gap: .1rem .9rem; align-items: center; padding: .7rem 1rem; border-radius: 1rem; border: 1px solid var(--line); background: color-mix(in srgb, var(--surface) 70%, transparent); backdrop-filter: blur(6px); }
+.member .num { grid-row: span 2; width: 2.6rem; height: 2.6rem; border-radius: 50%; display: grid; place-items: center; background: var(--on); color: var(--on-ink); font-weight: 800; font-family: var(--f-mono); font-size: .9rem; }
+.member .fld { width: 100%; font-size: 1.1rem; font-weight: 700; }
+.member .fld.reg { font-size: .95rem; font-weight: 400; font-family: var(--f-mono); }
+.hero { display: flex; flex-direction: column; gap: .6rem; align-items: center; }
+.hero .circuit { width: 100%; --ch: 19rem; }
+
+/* section */
+.section .inner { gap: 1.4rem; }
+.sec-num { font-family: var(--f-display); font-size: 9rem; line-height: .9; font-weight: 700; color: transparent; -webkit-text-stroke: 2px var(--accent); }
+.sec-title { font-family: var(--f-display); font-size: 3.6rem; font-weight: 700; line-height: 1.05; }
+.sec-sub { font-size: 1.5rem; color: var(--muted); max-width: 52rem; }
+.pills { display: flex; flex-wrap: wrap; gap: .8rem; }
+.pill { padding: .7rem 1.3rem; border-radius: 2rem; background: var(--surface); border: 1px solid var(--line); font-weight: 800; letter-spacing: .06em; cursor: default; }
+button.pill { cursor: pointer; transition: transform .15s, background .2s; }
+button.pill:hover { transform: translateY(-2px); background: var(--on); color: var(--on-ink); }
+
+/* roadmap */
+.rm { display: grid; grid-template-columns: repeat(8, 1fr); gap: 1rem .6rem; position: relative; }
+.rm .part { grid-row: 1; text-align: center; font-weight: 800; font-size: 1rem; padding: .5rem; border-radius: 2rem; background: var(--surface-2); color: var(--accent-text); }
+.rm .part.hot { background: var(--on-tint); color: var(--fg); }
+.rm .wire { grid-row: 2; grid-column: 1 / -1; position: relative; height: 5rem; }
+.rm .wire::before { content: ""; position: absolute; left: 6.25%; right: 6.25%; top: 50%; height: .3rem; margin-top: -.15rem; border-radius: 1rem; background: linear-gradient(90deg, var(--accent) 0 40%, var(--current) 50%, var(--accent) 60% 100%); background-size: 250% 100%; animation: wire 3.5s linear infinite; }
+@keyframes wire { from { background-position: 150% 0; } to { background-position: -100% 0; } }
+.rm .node { grid-row: 2; z-index: 1; justify-self: center; align-self: center; width: 4.4rem; height: 4.4rem; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink); font-family: var(--f-mono); font-weight: 600; font-size: 1.1rem; cursor: pointer; transition: transform .2s, box-shadow .2s; }
+.rm .node:hover { transform: scale(1.1); box-shadow: 0 0 1.5rem var(--accent); }
+.rm .node.hot { background: var(--on); color: var(--on-ink); width: 5rem; height: 5rem; box-shadow: 0 0 1.5rem color-mix(in srgb, var(--on) 50%, transparent); }
+.rm .lbl { grid-row: 3; text-align: center; }
+.rm .lbl b { display: block; font-size: 1.15rem; }
+.rm .lbl span { color: var(--muted); font-size: .95rem; }
+
+/* timeline */
+.tl { display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: auto 3rem auto; gap: 0 1rem; position: relative; }
+.tl::before { content: ""; grid-row: 2; grid-column: 1 / -1; align-self: center; height: .3rem; border-radius: 1rem; background: var(--line); }
+.tl .pulse { grid-row: 2; grid-column: 1 / -1; align-self: center; height: .3rem; border-radius: 1rem; background: linear-gradient(90deg, var(--accent), var(--current)); transform-origin: left; }
+.tl .dot { grid-row: 2; align-self: center; justify-self: center; width: 1.3rem; height: 1.3rem; border-radius: 50%; background: var(--on); box-shadow: 0 0 0 .3rem var(--bg), 0 0 1rem var(--on); z-index: 1; }
+.tl .ev { position: relative; padding: 1.1rem 1.2rem; }
+.tl .ev.up { grid-row: 1; align-self: end; margin-bottom: .8rem; }
+.tl .ev.down { grid-row: 3; align-self: start; margin-top: .8rem; }
+.tl .ev .yr { font-family: var(--f-display); font-size: 1.9rem; font-weight: 700; color: var(--accent-text); }
+.tl .ev h3 { font-size: 1.15rem; margin: .2rem 0 .3rem; }
+.tl .ev p { color: var(--muted); font-size: 1rem; }
+.tl .ev.wide { grid-column: span 2; }
+
+/* bit tile */
+.bitflip { height: 26rem; }
+.bitflip .face { align-items: center; text-align: center; gap: .6rem; }
+.bitflip .digit { font-family: var(--f-display); font-size: 8rem; font-weight: 700; line-height: 1; }
+.bitflip .front .digit { color: var(--off); }
+.bitflip .back .digit { color: var(--on); text-shadow: 0 0 2rem color-mix(in srgb, var(--on) 50%, transparent); }
+.bitflip ul { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; }
+.bitflip li { padding: .3rem .8rem; border-radius: 2rem; background: var(--surface-2); font-weight: 600; }
+.ops-chain { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.ops-chain span { font-family: var(--f-math); font-weight: 700; font-size: 1.5rem; min-width: 3.2rem; text-align: center; padding: .3rem .8rem; border-radius: 2rem; background: var(--accent); color: var(--accent-ink); }
+.ops-chain b { color: var(--muted); }
+
+/* charts */
+.fn-chart { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; align-items: end; height: 20rem; padding-top: 2rem; border-bottom: 2px solid var(--line); }
+.fn-chart .bar { position: relative; height: var(--h); border-radius: .7rem .7rem 0 0; background: linear-gradient(180deg, var(--on), var(--accent)); }
+.fn-chart .bar span { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: .4rem; font-family: var(--f-mono); font-size: .85rem; font-weight: 600; white-space: nowrap; }
+.fn-labels { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; text-align: center; font-family: var(--f-math); font-style: italic; color: var(--muted); }
+.pay { display: flex; flex-direction: column; gap: 1.1rem; }
+.pay .r { display: grid; grid-template-columns: 11rem 1fr; gap: 1rem; align-items: center; }
+.pay .r > b { font-size: 1.05rem; }
+.pay .bars { display: flex; flex-direction: column; gap: .35rem; }
+.pay .b { height: 1.5rem; width: var(--w); border-radius: 0 .6rem .6rem 0; display: flex; align-items: center; justify-content: flex-end; padding-right: .5rem; font-family: var(--f-mono); font-size: .8rem; font-weight: 600; min-width: 2.4rem; transform-origin: left; }
+.pay .b.before { background: var(--line); color: var(--fg); }
+.pay .b.after { background: var(--on); color: var(--on-ink); }
+.stat { font-family: var(--f-display); font-size: 6rem; font-weight: 700; color: var(--on); line-height: 1; }
+
+/* apps */
+.app { display: flex; flex-direction: column; gap: .5rem; transition: transform .25s, border-color .25s; }
+.app:hover { transform: translateY(-.3rem); border-color: var(--accent); }
+.app .ico { width: 3.4rem; height: 3.4rem; border-radius: 1rem; display: grid; place-items: center; background: var(--surface-2); color: var(--accent-text); font-size: 1.6rem; transition: transform .4s cubic-bezier(.5, 1.8, .4, 1); }
+.app:hover .ico { transform: rotate(-8deg) scale(1.12); color: var(--on); }
+.app h3 { font-size: 1.2rem; }
+.app p { color: var(--muted); font-size: 1rem; }
+
+/* quiz */
+.quiz { display: grid; grid-template-columns: 1fr 18rem; gap: 1.6rem; }
+.qz-q { font-size: 1.6rem; font-weight: 700; }
+.qz-opts { display: grid; grid-template-columns: 1fr 1fr; gap: .9rem; }
+.qz-opt { text-align: left; padding: 1rem 1.2rem; border-radius: 1rem; border: 2px solid var(--line); background: var(--surface-2); cursor: pointer; font-size: 1.25rem; transition: transform .15s, border-color .2s, background .2s; }
+.qz-opt:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--accent); }
+.qz-opt:disabled { cursor: default; }
+.qz-opt.right { border-color: var(--good); background: color-mix(in srgb, var(--good) 20%, var(--surface)); }
+.qz-opt.wrong { border-color: var(--off); background: color-mix(in srgb, var(--off) 18%, var(--surface)); animation: shake .45s; }
+@keyframes shake { 20%, 60% { transform: translateX(-.4rem); } 40%, 80% { transform: translateX(.4rem); } }
+.qz-dots { display: flex; gap: .5rem; }
+.qz-dots i { width: .8rem; height: .8rem; border-radius: 50%; background: var(--line); }
+.qz-dots i.ok { background: var(--good); } .qz-dots i.no { background: var(--off); } .qz-dots i.cur { box-shadow: 0 0 0 .2rem var(--accent); }
+.qz-ex { min-height: 3rem; color: var(--muted); }
+
+/* thanks */
+.bytes { display: flex; flex-wrap: wrap; gap: .8rem; }
+.byte { display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: .7rem .9rem; border-radius: .9rem; background: var(--surface); border: 1px solid var(--line); }
+.byte code { font-family: var(--f-mono); font-size: 1rem; color: var(--current); }
+.byte b { font-family: var(--f-display); font-size: 1.8rem; color: var(--on); min-height: 2.3rem; }
+.refs { font-size: 1rem; color: var(--muted); padding-left: 1.2rem; margin: .4rem 0 0; display: flex; flex-direction: column; gap: .3rem; }
+
+/* scene widgets */
+.scene svg { width: 100%; height: auto; display: block; max-height: 17rem; }
+.scene .st { stroke: var(--wire); stroke-width: 4; fill: none; stroke-linejoin: round; stroke-linecap: round; }
+.scene .plate { fill: var(--surface-2); stroke: var(--wire); stroke-width: 3; cursor: pointer; }
+.scene .knob { fill: var(--fg); transition: transform .35s cubic-bezier(.5, 1.7, .4, 1), fill .3s; }
+.scene .knob.up { fill: var(--on); }
+.scene .bulb { fill: var(--surface); stroke: var(--wire); stroke-width: 3; transition: fill .3s; }
+.scene .bulb.on { fill: var(--on); filter: drop-shadow(0 0 14px var(--on)); }
+.scene .beam { fill: var(--on); opacity: 0; transition: opacity .4s; }
+.scene .beam.on { opacity: .18; }
+.scene text { fill: var(--muted); font: 600 15px var(--f-body); }
+.scene .air { stroke: var(--current); stroke-width: 3; fill: none; stroke-linecap: round; stroke-dasharray: 10 12; opacity: 0; transition: opacity .3s; }
+.scene .air.on { opacity: .9; animation: flow2 .9s linear infinite; }
+@keyframes flow2 { to { stroke-dashoffset: -22; } }
+.scene .door { transition: transform .9s cubic-bezier(.6, .1, .3, 1); transform-origin: 32px 95px; }
+.scene .door.open { transform: scaleX(.14); }
+.scene .wheel { transition: transform .9s cubic-bezier(.5, 1.4, .4, 1); transform-origin: 135px 95px; }
+.scene .wheel.open { transform: rotate(180deg); }
+.scene .gold { fill: var(--on); }
+.scene .ac-body { fill: var(--surface-2); stroke: var(--wire); stroke-width: 3; }
+.scene .ac-led { fill: var(--line); transition: fill .3s; }
+.scene .ac-led.on { fill: var(--good); filter: drop-shadow(0 0 6px var(--good)); }
+.match { font-weight: 700; color: var(--good); display: flex; align-items: center; gap: .4rem; font-size: 1rem; }
+.match svg { width: 1.1rem; height: 1.1rem; }
+
+/* overview */
+.overview { position: fixed; inset: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); padding: calc(env(safe-area-inset-top, 0px) + 2rem) max(16px, 3rem) 2rem; overflow-y: auto; }
+.overview h2 { font-family: var(--f-display); font-size: 1.6rem; margin-bottom: 1.2rem; }
+.ov-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); gap: .8rem; }
+.ov-grid button { text-align: left; padding: .9rem 1rem; border-radius: .9rem; border: 1px solid var(--line); background: var(--surface); cursor: pointer; display: flex; flex-direction: column; gap: .2rem; transition: transform .15s, border-color .2s; }
+.ov-grid button:hover { transform: translateY(-2px); border-color: var(--accent); }
+.ov-grid button.cur { border-color: var(--on); box-shadow: 0 0 0 2px var(--on); }
+.ov-grid code { font-family: var(--f-mono); font-size: .75rem; color: var(--muted); }
+#fx { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
+
+/* view transitions */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .6s; animation-timing-function: cubic-bezier(.2, .8, .2, 1); }
+html[data-dir="next"]::view-transition-old(root) { animation-name: vt-out-l; }
+html[data-dir="next"]::view-transition-new(root) { animation-name: vt-in-r; }
+html[data-dir="prev"]::view-transition-old(root) { animation-name: vt-out-r; }
+html[data-dir="prev"]::view-transition-new(root) { animation-name: vt-in-l; }
+@keyframes vt-out-l { to { opacity: 0; transform: translateX(-5%) scale(.97); filter: blur(10px); } }
+@keyframes vt-in-r { from { opacity: 0; transform: translateX(7%) scale(.98); filter: blur(10px); } }
+@keyframes vt-out-r { to { opacity: 0; transform: translateX(5%) scale(.97); filter: blur(10px); } }
+@keyframes vt-in-l { from { opacity: 0; transform: translateX(-7%) scale(.98); filter: blur(10px); } }
+
+/* phones and portrait screens: one column, scroll inside the slide */
+@media (max-width: 820px), (max-aspect-ratio: 4/5) {
+  html { font-size: 14px; }
+  body { font-size: 1.1rem; }
+  .grid-2, .grid-3, .grid-4, .q-grid, .title-grid, .quiz, .team-grid, .qz-opts { grid-template-columns: 1fr; }
+  .inner { margin: 0 auto; }
+  .s-head h2 { font-size: 1.7rem; }
+  .s-head .sub { display: none; }
+  .display { font-size: 2.6rem; } .display .hl { font-size: 1.9rem; }
+  .sec-num { font-size: 5rem; } .sec-title { font-size: 2.2rem; }
+  .rm { grid-template-columns: repeat(4, 1fr); } .rm .part, .rm .wire { display: none; } .rm .node, .rm .lbl { grid-row: auto; }
+  .tl { grid-template-columns: 1fr; grid-template-rows: none; } .tl::before, .tl .pulse, .tl .dot { display: none; } .tl .ev.up, .tl .ev.down { grid-row: auto; margin: 0; } .tl .ev.wide { grid-column: auto; }
+  .laws { grid-template-columns: 1fr 1fr !important; }
+  .hint { display: none; }
+  .gate-card { grid-template-columns: 7rem 1fr; }
+  .pay .r { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+</style>
+
+</head>
+<body>
+<canvas id="bgfx" aria-hidden="true"></canvas>
+<header class="topbar">
+  <span class="brand"><span class="tog"></span>Boolean Algebra &amp; Switching Circuits</span>
+  <div class="progress" aria-hidden="true"><i></i></div>
+  <span class="counter" id="counter" aria-live="polite"></span>
+</header>
+
+<main class="deck" id="deck">
+
+<!-- 1 TITLE -->
+<section class="slide title" data-label="Title">
+  <div class="inner">
+    <div class="title-grid">
+      <div class="in">
+        <span class="tag on">Mathematics · Group Presentation</span>
+        <h1 class="display" style="margin-top:1.2rem"><span>Boolean Algebra</span><span class="hl">&amp; Switching Circuits</span></h1>
+        <p class="lede">From George Boole’s 0s and 1s to the switches inside every computer.</p>
+        <div class="fields">
+          <label for="f-course">Course <input class="fld" id="f-course" placeholder="Course code" autocomplete="off"></label>
+          <label for="f-faculty">Faculty <input class="fld" id="f-faculty" placeholder="Faculty name" autocomplete="off"></label>
+        </div>
+      </div>
+      <div class="hero in">
+        <figure class="circuit" data-scope="hero" data-net="par(ser(x,y),z)" data-init="x=1,y=1" style="margin:0"></figure>
+        <div class="row" style="justify-content:center"><div class="chips" data-scope="hero" data-vars="x,y,z"></div><span class="bit" data-scope="hero" data-expr="xy+z" data-on="Lamp ON" data-off="Lamp OFF"></span></div>
+        <p class="cap">Tap a switch. This lamp computes <span class="m">F = xy + z</span></p>
+      </div>
+    </div>
+    <div class="team in">
+      <h3>Our team</h3>
+      <div class="team-grid" id="team"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 ROADMAP -->
+<section class="slide" data-label="Roadmap">
+  <div class="inner">
+    <header class="s-head in"><span class="tog"></span><h2>Today’s Circuit: Our Roadmap</h2><span class="sub">Click any stop to jump straight there.</span></header>
+    <div class="rm in">
+      <div class="part" style="grid-column:1 / 5">Part 1 · Foundations</div>
+      <div class="part" style="grid-column:5 / 7">Part 2 · Switching Circuits</div>
+      <div class="part hot" style="grid-column:7 / 9">Part 3 · Problem Lab &amp; Beyond</div>
+      <div class="wire"></div>
+    </div>
+    <div class="card tint in row" style="gap:1.4rem;flex-wrap:nowrap">
+      <span class="ico" data-icon="bulb" style="font-size:2.4rem;color:var(--on)"></span>
+      <p><b style="color:var(--accent-text)">Did you know?</b> Every app on your phone finally runs as billions of tiny switches that are ON (1) or OFF (0). The rules those switches obey are exactly the laws of Boolean algebra we explore today.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 3 HISTORY -->
+<section class="slide" data-label="History" data-enter="timeline">
+  <div class="inner">
+    <header class="s-head in"><span class="tog"></span><h2>From Logic to Lightning</h2><span class="sub">A short history of the algebra of 0 and 1</span></header>
+    <div class="tl in">
+      <div class="pulse"></div>
+      <div class="ev up card" style="grid-column:1"><div class="yr">1847</div><h3>George Boole</h3><p>The Mathematical Analysis of Logic: reasoning can be written as algebra.</p></div>
+      <div class="ev down card" style="grid-column:2"><div class="yr">1854</div><h3>The Laws of Thought</h3><p>Boole builds a full algebra in which every value is 0 or 1.</p></div>
+      <div class="ev up card" style="grid-column:3"><div class="yr">1904</div><h3>E. V. Huntington</h3><p>Lists the independent postulates that define a Boolean algebra.</p></div>
+      <div class="ev down card" style="grid-column:4"><div class="yr">1938</div><h3>Claude Shannon</h3><p>MIT thesis: relay and switching circuits obey Boolean algebra.</p></div>
+      <div class="ev up card" style="grid-column:5"><div class="yr">1953</div><h3>Maurice Karnaugh</h3><p>The K-map: a picture-based way to simplify Boolean functions.</p></div>
+      <div class="ev down card" style="grid-column:6"><div class="yr">Today</div><h3>Your phone</h3><p>Billions of transistor switches per chip run on Boolean logic.</p></div>
+      <span class="dot" style="grid-column:1"></span><span class="dot" style="grid-column:2"></span><span class="dot" style="grid-column:3"></span><span class="dot" style="grid-column:4"></span><span class="dot" style="grid-column:5"></span><span class="dot" style="grid-column:6"></span>
+    </div>
+  </div>
+</section>
+
+<!-- 4 WHAT IS BA -->
+<section class="slide" data-label="Definition">
+  <div class="inner">
+    <header class="s-head in"><span class="tog"></span><h2>What Is a Boolean Algebra?</h2></header>
+    <div class="grid-2">
+      <div class="stack">
+        <div class="card tint in">
+          <span class="tag">Definition</span>
+          <p style="margin-top:.9rem">A Boolean algebra is a set <span class="m">B</span> together with:</p>
+          <ul style="margin:.5rem 0;padding-left:1.3rem;display:flex;flex-direction:column;gap:.35rem">
+            <li>two binary operations <span class="m">+</span> (Boolean sum, OR) and <span class="m">·</span> (Boolean product, AND)</li>
+            <li>one unary operation <span class="m">′</span> (complement, NOT)</li>
+            <li>two distinct elements <span class="m">0</span> and <span class="m">1</span></li>
+          </ul>
+          <p>such that the commutative, distributive, identity and complement laws hold for every <span class="m">x, y, z</span> in <span class="m">B</span> (Huntington’s postulates).</p>
+        </div>
+        <div class="card in">
+          <span class="tag">Order of operations</span>
+          <div class="ops-chain" style="margin:.9rem 0 .6rem"><span>( )</span><b>→</b><span>′</span><b>→</b><span>·</span><b>→</b><span>+</span></div>
+          <p class="muted">Example: <span class="m">x + y.z'</span> means <span class="m">x + (y.(z'))</span></p>
+        </div>
+      </div>
+      <div class="stack in">
+        <p style="font-weight:800;color:var(--accent-text)">The two-element Boolean algebra <span class="m">B = {0, 1}</span></p>
+        <div class="flip bitflip" id="bitflip" role="button" tabindex="0" aria-label="Flip between 0 and 1">
+          <div class="flip-in">
+            <div class="face front"><div class="digit">0</div><ul><li>False</li><li>OFF</li><li>Open switch</li><li>0 volts</li><li>“No”</li></ul></div>
+            <div class="face back"><div class="digit">1</div><ul><li>True</li><li>ON</li><li>Closed switch</li><li>+5 volts</li><li>“Yes”</li></ul></div>
+          </div>
+        </div>
+        <p class="cap">Click the tile to flip the bit.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 OPERATIONS -->
+<section class="slide" data-label="Operations">
+  <div class="inner">
+    <header class="s-head in"><span class="tog"></span><h2>Three Basic Operations</h2><div class="sub"><div class="chips" data-scope="ops" data-vars="x,y" style="justify-content:flex-end"></div></div></header>
+    <div class="grid-3">
+      <div class="card stack in"><span class="tag">OR · Boolean sum</span><div class="row" style="justify-content:space-between"><span class="m big-m">x + y</span><span class="bit" data-scope="ops" data-expr="x+y"></span></div><div class="venn-w" data-scope="ops" data-expr="x+y"></div><table class="tt" data-scope="ops" data-vars="x,y" data-cols="x+y"></table><p class="cap">1 when at least one input is 1</p></div>
+      <div class="card stack in"><span class="tag">AND · Boolean product</span><div class="row" style="justify-content:space-between"><span class="m big-m">x · y</span><span class="bit" data-scope="ops" data-expr="xy"></span></div><div class="venn-w" data-scope="ops" data-expr="xy"></div><table class="tt" data-scope="ops" data-vars="x,y" data-cols="xy"></table><p class="cap">1 only when both inputs are 1</p></div>
+      <div class="card stack in"><span class="tag">NOT · Complement</span><div class="row" style="justify-content:space-between"><span class="m big-m">x′</span><span class="bit" data-scope="ops" data-expr="x'"></span></div><div class="venn-w" data-scope="ops" data-expr="x'"></div><table class="tt" data-scope="ops" data-vars="x" data-cols="x'"></table><p class="cap">Flips the value: 0 ↔ 1. The yellow dot shows where (x, y) is now.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 FUNCTIONS -->
+<section class="slide" data-label="Functions" data-enter="fnchart">
+  <div class="inner">
+    <header class="s-head in"><span class="tog"></span><h2>Boolean Functions &amp; Truth Tables</h2></header>
+    <div class="grid-2">
+      <div class="stack in">
+        <p>A Boolean function of <span class="m">n</span> variables gives 0 or 1 for each of the <span class="m">2ⁿ</span> input rows. Example: <span class="m big-m" style="font-size:1.5rem">F(x, y, z) = x + y'z</span></p>
+        <div class="row"><div class="chips" data-scope="fn" data-vars="x,y,z"></div><span class="bit" data-scope="fn" data-expr="x+y'z" data-on="F = 1" data-off="F = 0"></span></div>
+        <table class="tt" data-scope="fn" data-vars="x,y,z" data-cols="y'z;x+y'z"></table>
+        <p class="cap">Click a row or toggle the switches: the highlighted row follows.</p>
+      </div>
+      <div class="card tint stack in">
+        <h3 style="font-size:1.3rem">How many different functions?</h3>
+        <p class="muted">With <span class="m">n</span> inputs there are <span class="m" style="color:var(--accent-text)">2^(2ⁿ)</span> possible Boolean functions (bar heights on a log scale).</p>
+        <div class="fn-chart" id="fnchart">
+          <div class="bar" style="--h:6.3%"><span>4</span></div>
+          <div class="bar" style="--h:12.5%"><span>16</span></div>
+          <div class="bar" style="--h:25%"><span>256</span></div>
+          <div class="bar" style="--h:50%"><span>65,536</span></div>
+          <div class="bar" style="--h:100%"><span>4.29 billion</span></div>
+        </div>
+        <div class="fn-labels"><span>n = 1</span><span>n = 2</span><span>n = 3</span><span>n = 4</span><span>n = 5</span></div>
+        <p class="cap" style="text-align:left">Just 5 switches already allow 4.29 billion different circuits, which is why simplification matters.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 LAWS -->
+<section class="slide" data-label="Laws">
+  <div class="inner">
+    <header class="s-head in"><span class="tog"></span><h2>The Laws of Boolean Algebra</h2><button class="btn primary" id="flipall" style="margin-left:auto"><span data-icon="swap"></span>Flip all to the dual</button></header>
+    <div class="laws grid-4 in" id="laws" style="grid-template-columns:repeat(5,1fr)"></div>
+    <div class="grid-2 in">
+      <div class="card row" style="flex-wrap:nowrap;gap:1.2rem;background:var(--on-tint)"><span class="m" style="font-size:2.4rem;color:var(--accent-text)">1 + 1 = 1</span><p><b>Weird but true.</b> TRUE OR TRUE is still just TRUE. This is not ordinary arithmetic.</p></div>
+      <div class="card row" style="flex-wrap:nowrap;gap:1.2rem"><span class="m" style="font-size:1.4rem;color:var(--accent-text)">x + yz = (x + y)(x + z)</span><p><b>Spot the surprise.</b> This law fails for numbers: 2 + 3·4 = 14, but (2 + 3)(2 + 4) = 30.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 DUALITY -->
+<section class="slide" data-label="Duality">
+  <div class="inner">
+    <header class="s-head in"><span class="tog"></span><h2>The Principle of Duality</h2></header>
+    <p class="in" style="max-width:70rem">The dual of an expression swaps <span class="m">+ ↔ ·</span> and <span class="m">0 ↔ 1</span>, leaving variables and complements alone. If an identity is true, its dual is true too: prove one law and you get its partner free.</p>
+    <div class="card tint stack in" style="gap:1.4rem">
+      <div class="row"><span class="tag">Duality machine</span><span class="muted small">Pick a statement, then run the machine.</span></div>
+      <div class="row" id="dual-presets"></div>
+      <div class="grid-2" style="align-items:center">
+        <div class="card" style="text-align:center"><div class="ln muted small">STATEMENT</div><div class="m" id="dual-src" style="font-size:2.3rem;white-space:normal"></div></div>
+        <div class="card" style="text-align:center;background:var(--on-tint)"><div class="ln muted small">ITS DUAL</div><div class="m" id="dual-out" style="font-size:2.3rem;white-space:normal;min-height:3.2rem"></div></div>
+      </div>
+      <div class="row"><button class="btn primary" id="dual-run"><span data-icon="swap"></span>Apply duality</button><span class="muted small">Watch every <span class="m">+</span>, <span class="m">·</span>, <span class="m">0</span> and <span class="m">1</span> flip.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 DE MORGAN -->
+<section class="slide" data-label="De Morgan">
+  <div class="inner">
+    <header class="s-head in"><span class="tog"></span><h2>De Morgan’s Laws</h2><span class="sub">Break the bar, change the sign</span></header>
+    <div class="grid-2">
+      <div class="stack">
+        <div class="card stack in" id="dm1"></div>
+        <div class="card stack in" id="dm2"></div>
+      </div>
+      <div class="card stack in" style="background:var(--surface-2)">
+        <div class="row"><div class="chips" data-scope="dm" data-vars="x,y"></div></div>
+        <div class="grid-2" style="gap:.6rem">
+          <div><span class="m">(x + y)′</span> <span class="bit" data-scope="dm" data-expr="(x+y)'"></span></div>
+          <div><span class="m">x′y′</span> <span class="bit" data-scope="dm" data-expr="x'y'"></span></div>
+          <div><span class="m">(xy)′</span> <span class="bit" data-scope="dm" data-expr="(xy)'"></span></div>
+          <div><span class="m">x′ + y′</span> <span class="bit" data-scope="dm" data-expr="x'+y'"></span></div>
+        </div>
+        <p class="muted small">Each pair always matches, whatever you set x and y to.</p>
+        <h3 style="font-size:1.1rem;color:var(--on)">For n variables</h3>
+        <p class="m" style="font-size:1.25rem">(x₁ + x₂ + … + xₙ)′ = x₁′ x₂′ … xₙ′</p>
+        <p class="m" style="font-size:1.25rem">(x₁ x₂ … xₙ)′ = x₁′ + x₂′ + … + xₙ′</p>
+        <h3 style="font-size:1.1rem;color:var(--on)">Circuit view</h3>
+        <p class="muted">The complement of a series circuit is a parallel circuit of complemented switches, and vice versa. Q6 uses exactly this.</p>
+        <span class="tag on" style="margin-top:auto;font-size:1rem;padding:.6rem 1.2rem">Break the bar · change the sign</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 GATES -->
+<section class="slide" data-label="Logic gates">
+  <div class="inner">
+    <header class="s-head in"><span class="tog"></span><h2>Logic Gates Playground</h2><div class="sub"><div class="chips" data-scope="g" data-vars="A,B" data-init="A=1" style="justify-content:flex-end"></div></div></header>
+    <div class="grid-3" id="gates"></div>
+    <p class="cap in">NAND and NOR are universal: any circuit at all can be built from just one of them.</p>
+  </div>
+</section>
+
+<!-- 11 SECTION 2 -->
+<section class="slide section" data-label="Part 2">
+  <div class="inner">
+    <div class="sec-num in">02</div>
+    <h2 class="sec-title in">Switching Circuits</h2>
+    <p class="sec-sub in">In 1938 Claude Shannon showed that circuits of switches follow exactly the laws of Boolean algebra.</p>
+    <div class="pills in"><span class="pill">SERIES = AND</span><span class="pill">PARALLEL = OR</span><span class="pill">LAMP = OUTPUT</span></div>
+  </div>
+</section>
+
+<!-- 12 SWITCH = VARIABLE -->
+<section class="slide" data-label="Switches">
+  <div class="inner">
+    <header class="s-head in"><span class="tog"></span><h2>A Switch Is a Boolean Variable</h2><div class="sub"><div class="chips" data-scope="sv" data-vars="x" style="justify-content:flex-end"></div></div></header>
+    <div class="grid-2">
+      <div class="card stack in"><div class="row" style="justify-content:space-between"><span class="tag">Switch x</span><span class="bit" data-scope="sv" data-expr="x" data-on="x = 1 · closed · lamp ON" data-off="x = 0 · open · lamp OFF"></span></div><figure class="circuit" data-scope="sv" data-net="x" style="margin:0;--ch:14rem"></figure></div>
+      <div class="card stack in"><div class="row" style="justify-content:space-between"><span class="tag">Switch x′</span><span class="bit" data-scope="sv" data-expr="x'" data-on="x′ = 1 · closed · lamp ON" data-off="x′ = 0 · open · lamp OFF"></span></div><figure class="circuit" data-scope="sv" data-net="x'" style="margin:0;--ch:14rem"></figure></div>
+    </div>
+    <div class="grid-3 in">
+      <div class="card"><b>Same label, same state.</b> <span class="muted">All switches marked x open and close together, as if linked by one lever.</span></div>
+      <div class="card"><b>x′ is always opposite.</b> <span class="muted">Click either switch: when x closes, x′ opens.</span></div>
+      <div class="card"><b>The lamp is the output.</b> <span class="muted">Lamp ON = 1, lamp OFF = 0, so a circuit computes a Boolean function.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 13 SERIES / PARALLEL -->
+<section class="slide" data-label="Series & parallel">
+  <div class="inner">
+    <header class="s-head in"><span class="tog"></span><h2>Series = AND, Parallel = OR</h2><div class="sub"><div class="chips" data-scope="sp" data-vars="x,y" style="justify-content:flex-end"></div></div></header>
+    <div class="grid-2">
+      <div class="card stack in"><div class="row" style="justify-content:space-between"><span class="tag">Series</span><span class="m big-m">F = x · y</span></div><figure class="circuit" data-scope="sp" data-net="ser(x,y)" style="margin:0;--ch:13rem"></figure><p>Current must pass through <b>both</b> switches, so the lamp is ON only when x AND y are closed.</p><table class="tt h" data-scope="sp" data-vars="x,y" data-cols="xy" data-orient="h"></table></div>
+      <div class="card stack in"><div class="row" style="justify-content:space-between"><span class="tag">Parallel</span><span class="m big-m">F = x + y</span></div><figure class="circuit" data-scope="sp" data-net="par(x,y)" style="margin:0;--ch:13rem"></figure><p>Current can take <b>either</b> path, so the lamp is ON when x OR y (or both) is closed.</p><table class="tt h" data-scope="sp" data-vars="x,y" data-cols="x+y" data-orient="h"></table></div>
+    </div>
+  </div>
+</section>
+
+<!-- 14 READ & BUILD -->
+<section class="slide" data-label="Read & build">
+  <div class="inner">
+    <header class="s-head in"><span class="tog"></span><h2>Reading and Building Circuits</h2><div class="sub"><div class="chips" data-scope="rb" data-vars="x,y,z" style="justify-content:flex-end"></div></div></header>
+    <div class="grid-2">
+      <div class="card stack in"><span class="tag">Circuit → expression</span><figure class="circuit" data-cid="rb1" data-scope="rb" data-net="ser(x,par(y,z'))" style="margin:0;--ch:15rem"></figure>
+        <ol class="steps">
+          <li data-step="1" data-focus="rb1:2"><span class="n">1</span><div><div class="ex"><span>Innermost block: y and z′ in parallel</span><span class="m">→ y + z'</span></div></div></li>
+          <li data-step="2" data-focus="rb1:0"><span class="n">2</span><div><div class="ex"><span>In series with x</span><span class="m">→ F = x(y + z')</span></div></div></li>
+        </ol>
+      </div>
+      <div class="card stack in"><span class="tag">Expression → circuit</span><figure class="circuit" data-cid="rb2" data-scope="rb" data-net="par(ser(x,y),ser(x',z))" style="margin:0;--ch:15rem"></figure>
+        <ol class="steps">
+          <li data-step="3" data-focus="rb2:1"><span class="n">1</span><div><div class="ex"><span class="m">F = {{xy}} + x'z</span></div><div class="why">The product term xy becomes a series branch</div></div></li>
+          <li data-step="4" data-focus="rb2:4"><span class="n">2</span><div><div class="ex"><span class="m">F = xy + {{x'z}}</span></div><div class="why">So does x′z, and the + puts the two branches in parallel</div></div></li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 15 CANONICAL -->
+<section class="slide" data-label="SOP & POS">
+  <div class="inner">
+    <header class="s-head in"><span class="tog"></span><h2>Canonical Forms: SOP and POS</h2><span class="sub">Click any F cell to change the function. Every form updates live.</span></header>
+    <div class="grid-2" style="grid-template-columns:1.15fr 1fr">
+      <div class="stack in"><table class="tt canon" data-fn="fn3"></table><div class="row"><button class="btn" data-fn-reset="fn3"><span data-icon="redo"></span>Reset to x + y′z</button></div></div>
+      <div class="stack in">
+        <div class="card" style="background:var(--on-tint)"><b>SOP: add the minterms where F = 1</b><div class="m" style="font-size:1.6rem;color:var(--accent-text);margin:.3rem 0" data-sop="fn3"></div><div class="m small" style="white-space:normal" data-sopx="fn3"></div></div>
+        <div class="card" style="background:color-mix(in srgb,var(--off) 12%,var(--surface))"><b>POS: multiply the maxterms where F = 0</b><div class="m" style="font-size:1.6rem;color:var(--accent-text);margin:.3rem 0" data-pos="fn3"></div><div class="m small" style="white-space:normal" data-posx="fn3"></div></div>
+        <div class="card tint"><b>Simplest form</b> <span class="muted small">(found by the K-map on the next slide)</span><div class="m" style="font-size:1.8rem;margin-top:.3rem" data-min="fn3"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 16 KMAP -->
+<section class="slide" data-label="K-maps">
+  <div class="inner">
+    <header class="s-head in"><span class="tog"></span><h2>Karnaugh Maps: Simplify by Grouping</h2><span class="sub">Click cells to toggle 1s. The groups redraw themselves.</span></header>
+    <div class="grid-2">
+      <div class="card stack in" style="align-items:center">
+        <div class="kmap edit" data-fn="fn3" data-vars="x,y,z" style="--cw:5.2rem;--chh:4.4rem"></div>
+        <div class="terms" data-terms="fn3"></div>
+        <div class="answer" style="width:100%;text-align:center"><span class="lead">Result: </span><span class="m" data-min="fn3"></span></div>
+      </div>
+      <ol class="steps in" style="gap:1.2rem">
+        <li><span class="n">1</span><div><b>Gray-code order.</b> <span class="muted">Label rows and columns 00, 01, 11, 10 so neighbours differ in one bit.</span></div></li>
+        <li><span class="n">2</span><div><b>Powers of two.</b> <span class="muted">Group adjacent 1s in rectangles of 1, 2, 4 or 8 cells.</span></div></li>
+        <li><span class="n">3</span><div><b>Go big.</b> <span class="muted">Make every group as large as possible. Groups may overlap.</span></div></li>
+        <li><span class="n">4</span><div><b>Edges wrap around.</b> <span class="muted">The left edge touches the right edge, and the top touches the bottom.</span></div></li>
+        <li><span class="n">5</span><div><b>Read each group.</b> <span class="muted">Keep only the variables that stay constant inside it.</span></div></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- 17 SECTION 3 -->
+<section class="slide section" data-label="Part 3">
+  <div class="inner">
+    <div class="sec-num in">03</div>
+    <h2 class="sec-title in">Problem Lab: 6 Unique Questions</h2>
+    <p class="sec-sub in">Each one is solved step by step, and every answer can be tested live with its circuit.</p>
+    <div class="pills in" id="qpills"></div>
+  </div>
+</section>
+
+<!-- 18 Q1 -->
+<section class="slide" data-label="Q1 Six-switch puzzle">
+  <div class="inner">
+    <header class="s-head in"><span class="qnum">Q1</span><h2>The Six-Switch Puzzle</h2><div class="sub"><div class="chips" data-scope="q1" data-vars="x,y,z" style="justify-content:flex-end"></div></div></header>
+    <div class="q-grid">
+      <article class="card tint q-card in"><span class="tag">Question 1</span>
+        <p class="q">Three pairs of parallel switches are wired in series with a lamp: <span class="m">(x ∥ y)</span>, <span class="m">(x ∥ y')</span> and <span class="m">(x' ∥ z)</span>. Find the Boolean function and design the simplest equivalent circuit.</p>
+        <figure class="circuit" data-scope="q1" data-net="ser(par(x,y),par(x,y'),par(x',z))" style="margin:0;--ch:15rem"></figure>
+      </article>
+      <article class="sol in"><span class="tag good">Solution</span>
+        <ol class="steps">
+          <li data-step="1"><span class="n">1</span><div><div class="ex"><span class="m">F = (x + y)(x + y')(x' + z)</span></div><div class="why">Parallel = sum, series = product</div></div></li>
+          <li data-step="2"><span class="n">2</span><div><div class="ex"><span class="m">(x + y)(x + y')</span><span class="m">= x + [[yy']]</span><span class="m">= x + 0</span><span class="m">= x</span></div><div class="why">Distributive, complement and identity laws</div></div></li>
+          <li data-step="3"><span class="n">3</span><div><div class="ex"><span class="m">F = x(x' + z)</span><span class="m">= [[xx']] + xz</span><span class="m">= 0 + xz</span></div><div class="why">Distributive and complement laws</div></div></li>
+          <li data-step="4"><span class="n">4</span><div><div class="ex"><span class="m">F = xz</span></div><div class="why">Identity law</div></div></li>
+        </ol>
+        <div class="answer" data-step="5"><div class="row" style="justify-content:space-between;flex-wrap:nowrap"><div><span class="lead">Answer: </span><span class="m">F = xz</span><p class="small">Only x and z in series: 6 switches → 2.</p><p class="match"><span data-icon="check"></span>Toggle x, y, z: both lamps always agree</p></div><figure class="circuit" data-scope="q1" data-net="ser(x,z)" style="margin:0;width:13rem;--ch:8rem"></figure></div></div>
+        <div class="sol-actions"><button class="btn" data-reveal><span data-icon="eye"></span>Show all steps</button><button class="btn" data-hide><span data-icon="redo"></span>Hide steps</button></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- 19 Q2 -->
+<section class="slide" data-label="Q2 Redundant branch">
+  <div class="inner">
+    <header class="s-head in"><span class="qnum">Q2</span><h2>The Redundant Branch</h2><div class="sub"><div class="chips" data-scope="q2" data-vars="x,y,z" data-init="y=1,z=1" style="justify-content:flex-end"></div></div></header>
+    <div class="q-grid">
+      <article class="card tint q-card in"><span class="tag">Question 2</span>
+        <p class="q">A lamp is controlled by three parallel branches: <span class="m">x–y</span>, <span class="m">x'–z</span> and <span class="m" style="color:var(--off)">y–z</span>. An electrician says the red branch wastes two switches. Prove it.</p>
+        <figure class="circuit" data-scope="q2" data-net="par(ser(x,y),ser(x',z),!ser(y,z))" style="margin:0;--ch:17rem"></figure>
+        <p class="muted small">Try it: close y and z, then flip x. Another branch is always carrying current too.</p>
+      </article>
+      <article class="sol in"><span class="tag good">Solution</span>
+        <ol class="steps">
+          <li data-step="1"><span class="n">1</span><div><div class="ex"><span class="m">F = xy + x'z + yz</span></div><div class="why">Read the circuit</div></div></li>
+          <li data-step="2"><span class="n">2</span><div><div class="ex"><span class="m">yz = yz(x + x')</span><span class="m">= xyz + x'yz</span></div><div class="why">Identity and complement: x + x′ = 1</div></div></li>
+          <li data-step="3"><span class="n">3</span><div><div class="ex"><span class="m">F = xy(1 + z) + x'z(1 + y)</span></div><div class="why">Regroup with the distributive law</div></div></li>
+          <li data-step="4"><span class="n">4</span><div><div class="ex"><span class="m">F = xy + x'z</span><span>✓</span></div><div class="why">Domination (1 + z = 1) and identity</div></div></li>
+        </ol>
+        <div class="answer" data-step="5"><div class="row" style="justify-content:space-between;flex-wrap:nowrap"><div><span class="lead">Consensus theorem: </span><span class="m">xy + x'z + yz = xy + x'z</span><p class="small">The red branch is never needed. 6 switches → 4.</p><p class="match"><span data-icon="check"></span>Both lamps always agree</p></div><figure class="circuit" data-scope="q2" data-net="par(ser(x,y),ser(x',z))" style="margin:0;width:12rem;--ch:9rem"></figure></div></div>
+        <div class="sol-actions"><button class="btn" data-reveal><span data-icon="eye"></span>Show all steps</button><button class="btn" data-hide><span data-icon="redo"></span>Hide steps</button></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- 20 Q3 -->
+<section class="slide" data-label="Q3 Hostel AC vote">
+  <div class="inner">
+    <header class="s-head in"><span class="qnum">Q3</span><h2>The Hostel AC Vote</h2></header>
+    <div class="q-grid">
+      <article class="card tint q-card in"><span class="tag">Question 3</span>
+        <p class="q">Roommates A, B and C each have a switch. The room AC turns ON only when <b>at least two</b> of them vote YES. Find the simplest switching circuit.</p>
+        <div class="chips" data-scope="q3" data-vars="A,B,C" data-names="Roommate A|Roommate B|Roommate C" data-vote="1"></div>
+        <div class="scene" id="ac" data-scope="q3" data-expr="AB+C(A+B)"></div>
+        <table class="tt h" data-scope="q3" data-vars="A,B,C" data-cols="AB+BC+CA" data-orient="h" data-colname="F" data-head="m"></table>
+      </article>
+      <article class="sol in"><span class="tag good">Solution</span>
+        <ol class="steps">
+          <li data-step="1"><span class="n">1</span><div><div class="ex"><span class="m">F = Σm(3, 5, 6, 7)</span></div><div class="why">Columns of the truth table where F = 1</div></div></li>
+          <li data-step="2"><span class="n">2</span><div class="row" style="align-items:flex-start;gap:1.2rem"><div class="kmap noidx" data-vars="A,B,C" data-ones="3,5,6,7" data-gsteps="2,2,2" style="--cw:3.9rem;--chh:3.1rem"></div><div><div class="ex"><span class="m">F = AB + BC + CA</span></div><div class="why">Three overlapping pairs (6 switches)</div></div></div></li>
+          <li data-step="3"><span class="n">3</span><div><div class="ex"><span class="m">F = AB + C(A + B)</span></div><div class="why">Factor out C: only 5 switches</div></div></li>
+        </ol>
+        <div class="answer" data-step="4"><div class="row" style="justify-content:space-between;flex-wrap:nowrap"><div><span class="lead">Answer: </span><span class="m">F = AB + C(A + B)</span><p class="small">Majority logic, also used to trust 2 of 3 sensors in aircraft.</p></div><figure class="circuit" data-scope="q3" data-net="par(ser(A,B),ser(C,par(A,B)))" style="margin:0;width:12rem;--ch:10rem"></figure></div></div>
+        <div class="sol-actions"><button class="btn" data-reveal><span data-icon="eye"></span>Show all steps</button><button class="btn" data-hide><span data-icon="redo"></span>Hide steps</button></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- 21 Q4 -->
+<section class="slide" data-label="Q4 Staircase light">
+  <div class="inner">
+    <header class="s-head in"><span class="qnum">Q4</span><h2>The Staircase Light</h2><div class="sub"><div class="chips" data-scope="q4" data-vars="x,y" data-names="Bottom x|Top y" style="justify-content:flex-end"></div></div></header>
+    <div class="q-grid">
+      <article class="card tint q-card in"><span class="tag">Question 4</span>
+        <p class="q">A staircase light has one switch at the bottom (<span class="m">x</span>) and one at the top (<span class="m">y</span>). Flipping <b>either</b> switch must toggle the light. Both start down (0) with the light OFF. Design the circuit.</p>
+        <div class="scene" id="stairs" data-scope="q4"></div>
+        <p class="muted small">Click the wall switches on the stairs.</p>
+      </article>
+      <article class="sol in"><span class="tag good">Solution</span>
+        <div class="grid-2" style="grid-template-columns:1fr 13rem;gap:1rem">
+          <ol class="steps">
+            <li data-step="1"><span class="n">1</span><div><div class="ex"><span class="m">F = 1</span><span>when</span><span class="m">x ≠ y</span></div><div class="why">0 0 → OFF, one flip → ON, two flips → OFF</div></div></li>
+            <li data-step="2"><span class="n">2</span><div><div class="ex"><span class="m">F = x'y + xy'</span></div><div class="why">SOP from rows 01 and 10</div></div></li>
+            <li data-step="3"><span class="n">3</span><div><div class="ex"><span class="m">F = x ⊕ y</span></div><div class="why">Exclusive OR (XOR); already minimal</div></div></li>
+          </ol>
+          <table class="tt" data-scope="q4" data-vars="x,y" data-cols="x'y+xy'" data-colname="F"></table>
+        </div>
+        <div class="answer" data-step="4"><div class="row" style="justify-content:space-between;flex-wrap:nowrap"><div><span class="lead">Answer: </span><span class="m">F = xy' + x'y = x ⊕ y</span><p class="small">In real wiring, x and x′ are one two-way (SPDT) switch.</p></div><figure class="circuit" data-scope="q4" data-net="par(ser(x,y'),ser(x',y))" style="margin:0;width:12rem;--ch:10rem"></figure></div></div>
+        <div class="sol-actions"><button class="btn" data-reveal><span data-icon="eye"></span>Show all steps</button><button class="btn" data-hide><span data-icon="redo"></span>Hide steps</button></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- 22 Q5 -->
+<section class="slide" data-label="Q5 Mirror map">
+  <div class="inner">
+    <header class="s-head in"><span class="qnum">Q5</span><h2>The Mirror Map</h2><div class="sub"><div class="chips" data-scope="q5" data-vars="A,B,C,D" style="justify-content:flex-end"></div></div></header>
+    <div class="q-grid" style="grid-template-columns:1fr 1fr">
+      <div class="stack">
+        <article class="card tint q-card in"><span class="tag">Question 5</span>
+          <p class="q">Simplify <span class="m">F(A, B, C, D) = Σm(0, 2, 5, 7, 8, 10, 13, 15)</span> with a Karnaugh map. What surprising pattern appears?</p>
+        </article>
+        <ol class="steps in">
+          <li data-step="1"><span class="n">1</span><div><div class="ex"><span>Plot the 8 ones</span></div><div class="why">Rows AB and columns CD in Gray-code order</div></div></li>
+          <li data-step="2"><span class="n">2</span><div><div class="ex"><span>Centre block</span><span class="m">→ BD</span></div><div class="why">B = 1 and D = 1 everywhere inside it</div></div></li>
+          <li data-step="3"><span class="n">3</span><div><div class="ex"><span>Four corners</span><span class="m">→ B'D'</span></div><div class="why">Edges wrap around, so the corners are neighbours</div></div></li>
+        </ol>
+      </div>
+      <div class="sol in" style="align-items:center">
+        <div class="kmap" data-vars="A,B,C,D" data-ones="0,2,5,7,8,10,13,15" data-gsteps="3,2" data-scope="q5" style="--cw:4.6rem;--chh:3.5rem"></div>
+        <div class="answer" data-step="4" style="width:100%"><span class="lead">Answer: </span><span class="m">F = BD + B'D' = B ⊙ D</span><p class="small">XNOR of B and D. Flip A or C with the switches above: F never changes. 32 switches → 4.</p><p class="row small" style="margin-top:.3rem">F now: <span class="bit" data-scope="q5" data-expr="BD+B'D'"></span></p></div>
+        <div class="sol-actions" style="margin-top:0"><button class="btn" data-reveal><span data-icon="eye"></span>Show all steps</button><button class="btn" data-hide><span data-icon="redo"></span>Hide steps</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 23 Q6 -->
+<section class="slide" data-label="Q6 Bank locker">
+  <div class="inner">
+    <header class="s-head in"><span class="qnum">Q6</span><h2>The Bank Locker</h2><div class="sub"><div class="chips" data-scope="q6" data-vars="M,C,E" data-names="Manager key M|Cashier key C|Code E" style="justify-content:flex-end"></div></div></header>
+    <div class="q-grid">
+      <article class="card tint q-card in"><span class="tag">Question 6</span>
+        <p class="q">A locker opens (<span class="m">L = 1</span>) when the Manager’s key <span class="m">M</span> AND the Cashier’s key <span class="m">C</span> are inserted, OR the emergency code <span class="m">E</span> is entered. When does it stay LOCKED? Find and simplify <span class="m">L'</span>.</p>
+        <div class="grid-2" style="align-items:center;gap:1rem">
+          <div class="scene" id="vault" data-scope="q6"></div>
+          <figure class="circuit" data-scope="q6" data-net="par(ser(M,C),E)" style="margin:0;--ch:11rem"><figcaption>Opening circuit L = MC + E</figcaption></figure>
+        </div>
+      </article>
+      <article class="sol in"><span class="tag good">Solution</span>
+        <ol class="steps">
+          <li data-step="1"><span class="n">1</span><div><div class="ex"><span class="m">L = MC + E</span></div><div class="why">Keys in series, code in parallel</div></div></li>
+          <li data-step="2"><span class="n">2</span><div><div class="ex"><span class="m">L' = (MC + E)'</span><span class="m">= (MC)'E'</span></div><div class="why">De Morgan’s law</div></div></li>
+          <li data-step="3"><span class="n">3</span><div><div class="ex"><span class="m">L' = (M' + C')E'</span></div><div class="why">De Morgan’s law again</div></div></li>
+          <li data-step="4"><span class="n">4</span><div><div class="ex"><span>Locked = no code AND a key missing</span></div><div class="why">Read the result in words</div></div></li>
+        </ol>
+        <div class="answer" data-step="5"><div class="row" style="justify-content:space-between;flex-wrap:nowrap"><div><span class="lead">Answer: </span><span class="m">L' = (M' + C')E'</span><p class="small">Series ↔ parallel swap, every switch complemented. This lamp lights when the locker is LOCKED.</p></div><figure class="circuit" data-scope="q6" data-net="ser(par(M',C'),E')" style="margin:0;width:12rem;--ch:10rem"></figure></div></div>
+        <div class="sol-actions"><button class="btn" data-reveal><span data-icon="eye"></span>Show all steps</button><button class="btn" data-hide><span data-icon="redo"></span>Hide steps</button></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- 24 PAYOFF -->
+<section class="slide" data-label="Why simplify" data-enter="pay">
+  <div class="inner">
+    <header class="s-head in"><span class="tog"></span><h2>Why Simplify? Fewer Switches, Same Logic</h2></header>
+    <div class="grid-2" style="grid-template-columns:1.5fr 1fr;align-items:center">
+      <div class="card in">
+        <div class="row" style="margin-bottom:1rem"><span class="tag">Switches needed</span><span class="row small muted"><i style="width:.9rem;height:.9rem;border-radius:.2rem;background:var(--line);display:inline-block"></i>Before <i style="width:.9rem;height:.9rem;border-radius:.2rem;background:var(--on);display:inline-block;margin-left:.6rem"></i>After</span></div>
+        <div class="pay" id="pay">
+          <div class="r"><b>Q1 Six-Switch</b><div class="bars"><div class="b before" style="--w:18.75%">6</div><div class="b after" style="--w:6.25%">2</div></div></div>
+          <div class="r"><b>Q2 Redundant Branch</b><div class="bars"><div class="b before" style="--w:18.75%">6</div><div class="b after" style="--w:12.5%">4</div></div></div>
+          <div class="r"><b>Q3 AC Vote (SOP)</b><div class="bars"><div class="b before" style="--w:37.5%">12</div><div class="b after" style="--w:15.6%">5</div></div></div>
+          <div class="r"><b>Q5 Mirror Map</b><div class="bars"><div class="b before" style="--w:100%">32</div><div class="b after" style="--w:12.5%">4</div></div></div>
+        </div>
+      </div>
+      <div class="stack in">
+        <div class="card" style="text-align:center"><div class="stat" id="pay-stat">73%</div><p>fewer switches across our four problems <span class="m">(56 → 15)</span></p></div>
+        <div class="card stack" style="gap:.7rem">
+          <div class="row"><span data-icon="rupee" style="color:var(--accent-text)"></span><b>Cheaper</b><span class="muted">fewer components</span></div>
+          <div class="row"><span data-icon="bolt" style="color:var(--accent-text)"></span><b>Faster</b><span class="muted">shorter signal paths</span></div>
+          <div class="row"><span data-icon="leaf" style="color:var(--accent-text)"></span><b>Greener</b><span class="muted">less power wasted</span></div>
+          <div class="row"><span data-icon="tools" style="color:var(--accent-text)"></span><b>Reliable</b><span class="muted">fewer parts to fail</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 25 APPLICATIONS -->
+<section class="slide" data-label="Applications">
+  <div class="inner">
+    <header class="s-head in"><span class="tog"></span><h2>Boolean Algebra All Around Us</h2></header>
+    <div class="grid-4">
+      <div class="card app in"><span class="ico" data-icon="chip"></span><h3>Processors</h3><p>Adders inside every CPU are built from XOR and AND gates.</p></div>
+      <div class="card app in"><span class="ico" data-icon="mem"></span><h3>Memory</h3><p>Flip-flops made of NAND or NOR gates store each bit of RAM.</p></div>
+      <div class="card app in"><span class="ico" data-icon="traffic"></span><h3>Traffic Signals</h3><p>Controllers decide which light turns green using logic rules.</p></div>
+      <div class="card app in"><span class="ico" data-icon="lock"></span><h3>Security Systems</h3><p>“Key AND code, OR override”: exactly our Q6 locker.</p></div>
+      <div class="card app in"><span class="ico" data-icon="search"></span><h3>Search Engines</h3><p>Queries like maths AND (logic OR circuits) NOT biology.</p></div>
+      <div class="card app in"><span class="ico" data-icon="bulb"></span><h3>Home Wiring</h3><p>Two-way staircase switches are an XOR circuit (Q4).</p></div>
+      <div class="card app in"><span class="ico" data-icon="code"></span><h3>Programming</h3><p><code>if (loggedIn &amp;&amp; !blocked)</code>: every condition is Boolean.</p></div>
+      <div class="card app in"><span class="ico" data-icon="vote"></span><h3>Fault Tolerance</h3><p>Systems trust the majority of 3 sensors (our Q3 vote).</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 26 QUIZ -->
+<section class="slide" data-label="Quick quiz">
+  <div class="inner">
+    <header class="s-head in"><span class="tog"></span><h2>Quick Quiz: Test the Class</h2><span class="sub">Five questions. Click an answer.</span></header>
+    <div class="quiz in" id="quiz"></div>
+  </div>
+</section>
+
+<!-- 27 TAKEAWAYS -->
+<section class="slide" data-label="Takeaways">
+  <div class="inner">
+    <header class="s-head in"><span class="tog"></span><h2>Key Takeaways</h2></header>
+    <div class="grid-2" style="grid-template-columns:1.4fr 1fr">
+      <ol class="steps in" style="gap:1.3rem">
+        <li><span class="n">1</span><div><b>Two values, three operations.</b><br><span class="muted">Everything is built from 0, 1 and the operations +, · and ′.</span></div></li>
+        <li><span class="n">2</span><div><b>Laws come in dual pairs.</b><br><span class="muted">Swap + ↔ · and 0 ↔ 1: prove one law, get its dual free.</span></div></li>
+        <li><span class="n">3</span><div><b>De Morgan flips the circuit.</b><br><span class="muted">Break the bar, change the sign; series ↔ parallel.</span></div></li>
+        <li><span class="n">4</span><div><b>Circuits are expressions.</b><br><span class="muted">Series = AND, parallel = OR, lamp = output.</span></div></li>
+        <li><span class="n">5</span><div><b>Simplify to save.</b><br><span class="muted">Laws and K-maps give the same output with far fewer switches.</span></div></li>
+      </ol>
+      <div class="card stack in" style="background:var(--surface-2)">
+        <span class="tag on">Cheat sheet</span>
+        <p class="m" style="font-size:1.5rem">x + x' = 1</p><p class="m" style="font-size:1.5rem">x · x' = 0</p><p class="m" style="font-size:1.5rem">x + xy = x</p><p class="m" style="font-size:1.5rem">(x + y)' = x'y'</p><p class="m" style="font-size:1.5rem">(xy)' = x' + y'</p><p class="m" style="font-size:1.5rem">xy + x'z + yz = xy + x'z</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 28 THANKS -->
+<section class="slide section" data-label="Thank you" data-enter="thanks">
+  <div class="inner">
+    <div class="grid-2" style="grid-template-columns:1.3fr 1fr;align-items:center">
+      <div class="stack">
+        <h2 class="sec-title in" style="font-size:4.6rem">Thank You!</h2>
+        <p class="sec-sub in" style="color:var(--on)">Questions? Let’s switch on the discussion.</p>
+        <div class="bytes in" id="bytes"></div>
+        <p class="cap in" style="text-align:left">“Thanks” written in 8-bit ASCII binary</p>
+      </div>
+      <figure class="circuit in" data-scope="end" data-net="par(ser(x,y),z)" data-init="x=1,y=1" style="margin:0;--ch:17rem"></figure>
+    </div>
+    <div class="card in"><span class="tag">References</span>
+      <ul class="refs">
+        <li>K. H. Rosen, Discrete Mathematics and Its Applications, Ch. 12 “Boolean Algebra”, McGraw-Hill.</li>
+        <li>B. Kolman, R. C. Busby &amp; S. C. Ross, Discrete Mathematical Structures, Pearson.</li>
+        <li>M. Morris Mano &amp; M. D. Ciletti, Digital Design, Pearson.</li>
+        <li>C. E. Shannon, “A Symbolic Analysis of Relay and Switching Circuits”, Trans. AIEE, 1938.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<nav class="controls" aria-label="Slide controls">
+  <button class="ctl" id="b-theme" title="Toggle light / dark (T)" aria-label="Toggle theme"><span data-icon="moon"></span></button>
+  <button class="ctl" id="b-ov" title="All slides (O)" aria-label="Show all slides"><span data-icon="grid"></span></button>
+  <button class="ctl" id="b-fs" title="Fullscreen (F)" aria-label="Fullscreen"><span data-icon="expand"></span></button>
+  <button class="ctl" id="b-prev" title="Previous (←)" aria-label="Previous slide"><span data-icon="left"></span></button>
+  <button class="ctl" id="b-next" title="Next (→)" aria-label="Next step or slide"><span data-icon="right"></span></button>
+</nav>
+<p class="hint"><kbd>←</kbd> <kbd>→</kbd> step through · <kbd>O</kbd> all slides · <kbd>F</kbd> fullscreen · <kbd>T</kbd> theme</p>
+<div class="overview" id="overview" hidden><h2>All slides</h2><div class="ov-grid" id="ov-grid"></div></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<script>
+(() => {
+"use strict";
+const ICONS = {"bulb":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 352 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M96.06 454.35c.01 6.29 1.87 12.45 5.36 17.69l17.09 25.69a31.99 31.99 0 0 0 26.64 14.28h61.71a31.99 31.99 0 0 0 26.64-14.28l17.09-25.69a31.989 31.989 0 0 0 5.36-17.69l.04-38.35H96.01l.05 38.35zM0 176c0 44.37 16.45 84.85 43.56 115.78 16.52 18.85 42.36 58.23 52.21 91.45.04.26.07.52.11.78h160.24c.04-.26.07-.51.11-.78 9.85-33.22 35.69-72.6 52.21-91.45C335.55 260.85 352 220.37 352 176 352 78.61 272.91-.3 175.45 0 73.44.31 0 82.97 0 176zm176-80c-44.11 0-80 35.89-80 80 0 8.84-7.16 16-16 16s-16-7.16-16-16c0-61.76 50.24-112 112-112 8.84 0 16 7.16 16 16s-7.16 16-16 16z\"></path></svg>","swap":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M0 168v-16c0-13.255 10.745-24 24-24h360V80c0-21.367 25.899-32.042 40.971-16.971l80 80c9.372 9.373 9.372 24.569 0 33.941l-80 80C409.956 271.982 384 261.456 384 240v-48H24c-13.255 0-24-10.745-24-24zm488 152H128v-48c0-21.314-25.862-32.08-40.971-16.971l-80 80c-9.372 9.373-9.372 24.569 0 33.941l80 80C102.057 463.997 128 453.437 128 432v-48h360c13.255 0 24-10.745 24-24v-16c0-13.255-10.745-24-24-24z\"></path></svg>","check":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M504 256c0 136.967-111.033 248-248 248S8 392.967 8 256 119.033 8 256 8s248 111.033 248 248zM227.314 387.314l184-184c6.248-6.248 6.248-16.379 0-22.627l-22.627-22.627c-6.248-6.249-16.379-6.249-22.628 0L216 308.118l-70.059-70.059c-6.248-6.248-16.379-6.248-22.628 0l-22.627 22.627c-6.248 6.248-6.248 16.379 0 22.627l104 104c6.249 6.249 16.379 6.249 22.628.001z\"></path></svg>","eye":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 576 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M572.52 241.4C518.29 135.59 410.93 64 288 64S57.68 135.64 3.48 241.41a32.35 32.35 0 0 0 0 29.19C57.71 376.41 165.07 448 288 448s230.32-71.64 284.52-177.41a32.35 32.35 0 0 0 0-29.19zM288 400a144 144 0 1 1 144-144 143.93 143.93 0 0 1-144 144zm0-240a95.31 95.31 0 0 0-25.31 3.79 47.85 47.85 0 0 1-66.9 66.9A95.78 95.78 0 1 0 288 160z\"></path></svg>","redo":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M500.33 0h-47.41a12 12 0 0 0-12 12.57l4 82.76A247.42 247.42 0 0 0 256 8C119.34 8 7.9 119.53 8 256.19 8.1 393.07 119.1 504 256 504a247.1 247.1 0 0 0 166.18-63.91 12 12 0 0 0 .48-17.43l-34-34a12 12 0 0 0-16.38-.55A176 176 0 1 1 402.1 157.8l-101.53-4.87a12 12 0 0 0-12.57 12v47.41a12 12 0 0 0 12 12h200.33a12 12 0 0 0 12-12V12a12 12 0 0 0-12-12z\"></path></svg>","rupee":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 320 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M308 96c6.627 0 12-5.373 12-12V44c0-6.627-5.373-12-12-12H12C5.373 32 0 37.373 0 44v44.748c0 6.627 5.373 12 12 12h85.28c27.308 0 48.261 9.958 60.97 27.252H12c-6.627 0-12 5.373-12 12v40c0 6.627 5.373 12 12 12h158.757c-6.217 36.086-32.961 58.632-74.757 58.632H12c-6.627 0-12 5.373-12 12v53.012c0 3.349 1.4 6.546 3.861 8.818l165.052 152.356a12.001 12.001 0 0 0 8.139 3.182h82.562c10.924 0 16.166-13.408 8.139-20.818L116.871 319.906c76.499-2.34 131.144-53.395 138.318-127.906H308c6.627 0 12-5.373 12-12v-40c0-6.627-5.373-12-12-12h-58.69c-3.486-11.541-8.28-22.246-14.252-32H308z\"></path></svg>","bolt":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 320 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M296 160H180.6l42.6-129.8C227.2 15 215.7 0 200 0H56C44 0 33.8 8.9 32.2 20.8l-32 240C-1.7 275.2 9.5 288 24 288h118.7L96.6 482.5c-3.6 15.2 8 29.5 23.3 29.5 8.4 0 16.4-4.4 20.8-12l176-304c9.3-15.9-2.2-36-20.7-36z\"></path></svg>","leaf":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 576 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M546.2 9.7c-5.6-12.5-21.6-13-28.3-1.2C486.9 62.4 431.4 96 368 96h-80C182 96 96 182 96 288c0 7 .8 13.7 1.5 20.5C161.3 262.8 253.4 224 384 224c8.8 0 16 7.2 16 16s-7.2 16-16 16C132.6 256 26 410.1 2.4 468c-6.6 16.3 1.2 34.9 17.5 41.6 16.4 6.8 35-1.1 41.8-17.3 1.5-3.6 20.9-47.9 71.9-90.6 32.4 43.9 94 85.8 174.9 77.2C465.5 467.5 576 326.7 576 154.3c0-50.2-10.8-102.2-29.8-144.6z\"></path></svg>","tools":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M501.1 395.7L384 278.6c-23.1-23.1-57.6-27.6-85.4-13.9L192 158.1V96L64 0 0 64l96 128h62.1l106.6 106.6c-13.6 27.8-9.2 62.3 13.9 85.4l117.1 117.1c14.6 14.6 38.2 14.6 52.7 0l52.7-52.7c14.5-14.6 14.5-38.2 0-52.7zM331.7 225c28.3 0 54.9 11 74.9 31l19.4 19.4c15.8-6.9 30.8-16.5 43.8-29.5 37.1-37.1 49.7-89.3 37.9-136.7-2.2-9-13.5-12.1-20.1-5.5l-74.4 74.4-67.9-11.3L334 98.9l74.4-74.4c6.6-6.6 3.4-17.9-5.7-20.2-47.4-11.7-99.6.9-136.6 37.9-28.5 28.5-41.9 66.1-41.2 103.6l82.1 82.1c8.1-1.9 16.5-2.9 24.7-2.9zm-103.9 82l-56.7-56.7L18.7 402.8c-25 25-25 65.5 0 90.5s65.5 25 90.5 0l123.6-123.6c-7.6-19.9-9.9-41.6-5-62.7zM64 472c-13.2 0-24-10.8-24-24 0-13.3 10.7-24 24-24s24 10.7 24 24c0 13.2-10.7 24-24 24z\"></path></svg>","chip":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M416 48v416c0 26.51-21.49 48-48 48H144c-26.51 0-48-21.49-48-48V48c0-26.51 21.49-48 48-48h224c26.51 0 48 21.49 48 48zm96 58v12a6 6 0 0 1-6 6h-18v6a6 6 0 0 1-6 6h-42V88h42a6 6 0 0 1 6 6v6h18a6 6 0 0 1 6 6zm0 96v12a6 6 0 0 1-6 6h-18v6a6 6 0 0 1-6 6h-42v-48h42a6 6 0 0 1 6 6v6h18a6 6 0 0 1 6 6zm0 96v12a6 6 0 0 1-6 6h-18v6a6 6 0 0 1-6 6h-42v-48h42a6 6 0 0 1 6 6v6h18a6 6 0 0 1 6 6zm0 96v12a6 6 0 0 1-6 6h-18v6a6 6 0 0 1-6 6h-42v-48h42a6 6 0 0 1 6 6v6h18a6 6 0 0 1 6 6zM30 376h42v48H30a6 6 0 0 1-6-6v-6H6a6 6 0 0 1-6-6v-12a6 6 0 0 1 6-6h18v-6a6 6 0 0 1 6-6zm0-96h42v48H30a6 6 0 0 1-6-6v-6H6a6 6 0 0 1-6-6v-12a6 6 0 0 1 6-6h18v-6a6 6 0 0 1 6-6zm0-96h42v48H30a6 6 0 0 1-6-6v-6H6a6 6 0 0 1-6-6v-12a6 6 0 0 1 6-6h18v-6a6 6 0 0 1 6-6zm0-96h42v48H30a6 6 0 0 1-6-6v-6H6a6 6 0 0 1-6-6v-12a6 6 0 0 1 6-6h18v-6a6 6 0 0 1 6-6z\"></path></svg>","mem":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 640 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M640 130.94V96c0-17.67-14.33-32-32-32H32C14.33 64 0 78.33 0 96v34.94c18.6 6.61 32 24.19 32 45.06s-13.4 38.45-32 45.06V320h640v-98.94c-18.6-6.61-32-24.19-32-45.06s13.4-38.45 32-45.06zM224 256h-64V128h64v128zm128 0h-64V128h64v128zm128 0h-64V128h64v128zM0 448h64v-26.67c0-8.84 7.16-16 16-16s16 7.16 16 16V448h128v-26.67c0-8.84 7.16-16 16-16s16 7.16 16 16V448h128v-26.67c0-8.84 7.16-16 16-16s16 7.16 16 16V448h128v-26.67c0-8.84 7.16-16 16-16s16 7.16 16 16V448h64v-96H0v96z\"></path></svg>","traffic":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 384 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M384 192h-64v-37.88c37.2-13.22 64-48.38 64-90.12h-64V32c0-17.67-14.33-32-32-32H96C78.33 0 64 14.33 64 32v32H0c0 41.74 26.8 76.9 64 90.12V192H0c0 41.74 26.8 76.9 64 90.12V320H0c0 42.84 28.25 78.69 66.99 91.05C79.42 468.72 130.6 512 192 512s112.58-43.28 125.01-100.95C355.75 398.69 384 362.84 384 320h-64v-37.88c37.2-13.22 64-48.38 64-90.12zM192 416c-26.51 0-48-21.49-48-48s21.49-48 48-48 48 21.49 48 48-21.49 48-48 48zm0-128c-26.51 0-48-21.49-48-48s21.49-48 48-48 48 21.49 48 48-21.49 48-48 48zm0-128c-26.51 0-48-21.49-48-48s21.49-48 48-48 48 21.49 48 48-21.49 48-48 48z\"></path></svg>","lock":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 448 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M400 224h-24v-72C376 68.2 307.8 0 224 0S72 68.2 72 152v72H48c-26.5 0-48 21.5-48 48v192c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V272c0-26.5-21.5-48-48-48zm-104 0H152v-72c0-39.7 32.3-72 72-72s72 32.3 72 72v72z\"></path></svg>","search":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M505 442.7L405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c48.3 0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9 0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7 0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7 0 128 57.2 128 128 0 70.7-57.2 128-128 128z\"></path></svg>","code":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 640 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M278.9 511.5l-61-17.7c-6.4-1.8-10-8.5-8.2-14.9L346.2 8.7c1.8-6.4 8.5-10 14.9-8.2l61 17.7c6.4 1.8 10 8.5 8.2 14.9L293.8 503.3c-1.9 6.4-8.5 10.1-14.9 8.2zm-114-112.2l43.5-46.4c4.6-4.9 4.3-12.7-.8-17.2L117 256l90.6-79.7c5.1-4.5 5.5-12.3.8-17.2l-43.5-46.4c-4.5-4.8-12.1-5.1-17-.5L3.8 247.2c-5.1 4.7-5.1 12.8 0 17.5l144.1 135.1c4.9 4.6 12.5 4.4 17-.5zm327.2.6l144.1-135.1c5.1-4.7 5.1-12.8 0-17.5L492.1 112.1c-4.8-4.5-12.4-4.3-17 .5L431.6 159c-4.6 4.9-4.3 12.7.8 17.2L523 256l-90.6 79.7c-5.1 4.5-5.5 12.3-.8 17.2l43.5 46.4c4.5 4.9 12.1 5.1 17 .6z\"></path></svg>","vote":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 640 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M608 320h-64v64h22.4c5.3 0 9.6 3.6 9.6 8v16c0 4.4-4.3 8-9.6 8H73.6c-5.3 0-9.6-3.6-9.6-8v-16c0-4.4 4.3-8 9.6-8H96v-64H32c-17.7 0-32 14.3-32 32v96c0 17.7 14.3 32 32 32h576c17.7 0 32-14.3 32-32v-96c0-17.7-14.3-32-32-32zm-96 64V64.3c0-17.9-14.5-32.3-32.3-32.3H160.4C142.5 32 128 46.5 128 64.3V384h384zM211.2 202l25.5-25.3c4.2-4.2 11-4.2 15.2.1l41.3 41.6 95.2-94.4c4.2-4.2 11-4.2 15.2.1l25.3 25.5c4.2 4.2 4.2 11-.1 15.2L300.5 292c-4.2 4.2-11 4.2-15.2-.1l-74.1-74.7c-4.3-4.2-4.2-11 0-15.2z\"></path></svg>","moon":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M283.211 512c78.962 0 151.079-35.925 198.857-94.792 7.068-8.708-.639-21.43-11.562-19.35-124.203 23.654-238.262-71.576-238.262-196.954 0-72.222 38.662-138.635 101.498-174.394 9.686-5.512 7.25-20.197-3.756-22.23A258.156 258.156 0 0 0 283.211 0c-141.309 0-256 114.511-256 256 0 141.309 114.511 256 256 256z\"></path></svg>","sun":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M256 160c-52.9 0-96 43.1-96 96s43.1 96 96 96 96-43.1 96-96-43.1-96-96-96zm246.4 80.5l-94.7-47.3 33.5-100.4c4.5-13.6-8.4-26.5-21.9-21.9l-100.4 33.5-47.4-94.8c-6.4-12.8-24.6-12.8-31 0l-47.3 94.7L92.7 70.8c-13.6-4.5-26.5 8.4-21.9 21.9l33.5 100.4-94.7 47.4c-12.8 6.4-12.8 24.6 0 31l94.7 47.3-33.5 100.5c-4.5 13.6 8.4 26.5 21.9 21.9l100.4-33.5 47.3 94.7c6.4 12.8 24.6 12.8 31 0l47.3-94.7 100.4 33.5c13.6 4.5 26.5-8.4 21.9-21.9l-33.5-100.4 94.7-47.3c13-6.5 13-24.7.2-31.1zm-155.9 106c-49.9 49.9-131.1 49.9-181 0-49.9-49.9-49.9-131.1 0-181 49.9-49.9 131.1-49.9 181 0 49.9 49.9 49.9 131.1 0 181z\"></path></svg>","grid":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M296 32h192c13.255 0 24 10.745 24 24v160c0 13.255-10.745 24-24 24H296c-13.255 0-24-10.745-24-24V56c0-13.255 10.745-24 24-24zm-80 0H24C10.745 32 0 42.745 0 56v160c0 13.255 10.745 24 24 24h192c13.255 0 24-10.745 24-24V56c0-13.255-10.745-24-24-24zM0 296v160c0 13.255 10.745 24 24 24h192c13.255 0 24-10.745 24-24V296c0-13.255-10.745-24-24-24H24c-13.255 0-24 10.745-24 24zm296 184h192c13.255 0 24-10.745 24-24V296c0-13.255-10.745-24-24-24H296c-13.255 0-24 10.745-24 24v160c0 13.255 10.745 24 24 24z\"></path></svg>","expand":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 448 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M0 180V56c0-13.3 10.7-24 24-24h124c6.6 0 12 5.4 12 12v40c0 6.6-5.4 12-12 12H64v84c0 6.6-5.4 12-12 12H12c-6.6 0-12-5.4-12-12zM288 44v40c0 6.6 5.4 12 12 12h84v84c0 6.6 5.4 12 12 12h40c6.6 0 12-5.4 12-12V56c0-13.3-10.7-24-24-24H300c-6.6 0-12 5.4-12 12zm148 276h-40c-6.6 0-12 5.4-12 12v84h-84c-6.6 0-12 5.4-12 12v40c0 6.6 5.4 12 12 12h124c13.3 0 24-10.7 24-24V332c0-6.6-5.4-12-12-12zM160 468v-40c0-6.6-5.4-12-12-12H64v-84c0-6.6-5.4-12-12-12H12c-6.6 0-12 5.4-12 12v124c0 13.3 10.7 24 24 24h124c6.6 0 12-5.4 12-12z\"></path></svg>","left":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 448 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M257.5 445.1l-22.2 22.2c-9.4 9.4-24.6 9.4-33.9 0L7 273c-9.4-9.4-9.4-24.6 0-33.9L201.4 44.7c9.4-9.4 24.6-9.4 33.9 0l22.2 22.2c9.5 9.5 9.3 25-.4 34.3L136.6 216H424c13.3 0 24 10.7 24 24v32c0 13.3-10.7 24-24 24H136.6l120.5 114.8c9.8 9.3 10 24.8.4 34.3z\"></path></svg>","right":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 448 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M190.5 66.9l22.2-22.2c9.4-9.4 24.6-9.4 33.9 0L441 239c9.4 9.4 9.4 24.6 0 33.9L246.6 467.3c-9.4 9.4-24.6 9.4-33.9 0l-22.2-22.2c-9.5-9.5-9.3-25 .4-34.3L311.4 296H24c-13.3 0-24-10.7-24-24v-32c0-13.3 10.7-24 24-24h287.4L190.9 101.2c-9.8-9.3-10-24.8-.4-34.3z\"></path></svg>","up":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M104 224H24c-13.255 0-24 10.745-24 24v240c0 13.255 10.745 24 24 24h80c13.255 0 24-10.745 24-24V248c0-13.255-10.745-24-24-24zM64 472c-13.255 0-24-10.745-24-24s10.745-24 24-24 24 10.745 24 24-10.745 24-24 24zM384 81.452c0 42.416-25.97 66.208-33.277 94.548h101.723c33.397 0 59.397 27.746 59.553 58.098.084 17.938-7.546 37.249-19.439 49.197l-.11.11c9.836 23.337 8.237 56.037-9.308 79.469 8.681 25.895-.069 57.704-16.382 74.757 4.298 17.598 2.244 32.575-6.148 44.632C440.202 511.587 389.616 512 346.839 512l-2.845-.001c-48.287-.017-87.806-17.598-119.56-31.725-15.957-7.099-36.821-15.887-52.651-16.178-6.54-.12-11.783-5.457-11.783-11.998v-213.77c0-3.2 1.282-6.271 3.558-8.521 39.614-39.144 56.648-80.587 89.117-113.111 14.804-14.832 20.188-37.236 25.393-58.902C282.515 39.293 291.817 0 312 0c24 0 72 8 72 81.452z\"></path></svg>","down":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" height=\"1em\" width=\"1em\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M0 56v240c0 13.255 10.745 24 24 24h80c13.255 0 24-10.745 24-24V56c0-13.255-10.745-24-24-24H24C10.745 32 0 42.745 0 56zm40 200c0-13.255 10.745-24 24-24s24 10.745 24 24-10.745 24-24 24-24-10.745-24-24zm272 256c-20.183 0-29.485-39.293-33.931-57.795-5.206-21.666-10.589-44.07-25.393-58.902-32.469-32.524-49.503-73.967-89.117-113.111a11.98 11.98 0 0 1-3.558-8.521V59.901c0-6.541 5.243-11.878 11.783-11.998 15.831-.29 36.694-9.079 52.651-16.178C256.189 17.598 295.709.017 343.995 0h2.844c42.777 0 93.363.413 113.774 29.737 8.392 12.057 10.446 27.034 6.148 44.632 16.312 17.053 25.063 48.863 16.382 74.757 17.544 23.432 19.143 56.132 9.308 79.469l.11.11c11.893 11.949 19.523 31.259 19.439 49.197-.156 30.352-26.157 58.098-59.553 58.098H350.723C358.03 364.34 384 388.132 384 430.548 384 504 336 512 312 512z\"></path></svg>"};
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const RM = matchMedia("(prefers-reduced-motion: reduce)");
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("basc-" + k); return v === null ? d : v; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem("basc-" + k, v); } catch (e) { /* storage unavailable */ } },
+};
+document.documentElement.classList.add("js");
+$$("[data-icon]").forEach((el) => { const s = ICONS[el.dataset.icon]; if (s) el.insertAdjacentHTML("afterbegin", s); });
+
+/* ================= Boolean expressions ================= */
+function parse(src) {
+  const s = src.replace(/\s+/g, "").replace(/[’′]/g, "'").replace(/[·*]/g, ".");
+  let i = 0;
+  const expr = () => { let n = term(); while (s[i] === "+") { i++; n = { t: "or", a: n, b: term() }; } return n; };
+  const term = () => { let n = factor(); while (i < s.length && (s[i] === "." || /[A-Za-z01(]/.test(s[i]))) { if (s[i] === ".") i++; n = { t: "and", a: n, b: factor() }; } return n; };
+  const factor = () => { let n = atom(); while (s[i] === "'") { i++; n = { t: "not", a: n }; } return n; };
+  const atom = () => {
+    const c = s[i];
+    if (c === "(") { i++; const n = expr(); i++; return { t: "par", a: n }; }
+    if (c === "0" || c === "1") { i++; return { t: "k", v: +c }; }
+    if (/[A-Za-z]/.test(c)) { i++; return { t: "var", v: c }; }
+    throw new Error("Cannot parse " + src);
+  };
+  return expr();
+}
+function ev(n, e) {
+  switch (n.t) {
+    case "or": return ev(n.a, e) | ev(n.b, e);
+    case "and": return ev(n.a, e) & ev(n.b, e);
+    case "not": return 1 - ev(n.a, e);
+    case "par": return ev(n.a, e);
+    case "k": return n.v;
+    default: return e[n.v] ? 1 : 0;
+  }
+}
+function html(n, o = {}) {
+  const w = (c) => (c.t === "or" ? "(" + html(c, o) + ")" : html(c, o));
+  switch (n.t) {
+    case "or": return html(n.a, o) + ' <b class="op">+</b> ' + html(n.b, o);
+    case "and": return w(n.a) + (o.dots ? '<b class="op">·</b>' : "") + w(n.b);
+    case "not": return html(n.a, o) + "′";
+    case "par": return "(" + html(n.a, o) + ")";
+    case "k": return '<span class="k">' + n.v + "</span>";
+    default: return "<i>" + n.v + "</i>";
+  }
+}
+function dual(n) {
+  switch (n.t) {
+    case "or": return { t: "and", a: dual(n.a), b: dual(n.b) };
+    case "and": return { t: "or", a: dual(n.a), b: dual(n.b) };
+    case "not": { let d = dual(n.a); if (d.t === "or" || d.t === "and") d = { t: "par", a: d }; return { t: "not", a: d }; }
+    case "par": return dual(n.a);
+    case "k": return { t: "k", v: 1 - n.v };
+    default: return n;
+  }
+}
+const esc = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+function fmt(t) {
+  return t.split(/(\[\[|\]\]|\{\{|\}\})/).map((p) => {
+    if (p === "[[") return '<s class="cancel">';
+    if (p === "]]") return "</s>";
+    if (p === "{{") return '<mark class="hlm">';
+    if (p === "}}") return "</mark>";
+    return esc(p).replace(/[A-Za-z]/g, "<i>$&</i>").replace(/'/g, "′").replace(/\./g, "·");
+  }).join("");
+}
+$$(".m").forEach((el) => { if (!el.children.length) el.innerHTML = fmt(el.textContent); });
+
+/* ================= scopes (shared switch states) ================= */
+const scopes = {};
+function S(name) {
+  return scopes[name] || (scopes[name] = {
+    v: {}, subs: [],
+    on(f) { this.subs.push(f); },
+    emit() { this.subs.forEach((f) => f(this.v)); },
+    set(k, val) { this.v[k] = val ? 1 : 0; this.emit(); },
+    toggle(k) { this.set(k, !this.v[k]); },
+  });
+}
+$$("[data-init]").forEach((el) => el.dataset.init.split(",").forEach((p) => { const [k, v] = p.split("="); S(el.dataset.scope).v[k] = +v; }));
+const evalIn = (expr) => { const ast = parse(expr); return (v) => ev(ast, v); };
+
+/* chips */
+$$(".chips").forEach((el) => {
+  const sc = S(el.dataset.scope), vars = el.dataset.vars.split(","), names = el.dataset.names ? el.dataset.names.split("|") : null;
+  const vote = el.dataset.vote === "1";
+  el.innerHTML = vars.map((v, i) => `<button class="chip" type="button" data-var="${v}" aria-pressed="false">${names ? `<span class="cn">${esc(names[i])}</span>` : `<span class="cv">${v}</span>`}<span class="cb">0</span></button>`).join("");
+  $$(".chip", el).forEach((b) => b.addEventListener("click", () => sc.toggle(b.dataset.var)));
+  sc.on((v) => $$(".chip", el).forEach((b) => {
+    const on = !!v[b.dataset.var], cb = $(".cb", b), prev = b.getAttribute("aria-pressed") === "true";
+    b.setAttribute("aria-pressed", on);
+    cb.innerHTML = vote ? ICONS[on ? "up" : "down"] : on ? "1" : "0";
+    if (prev !== on && !RM.matches) cb.animate([{ transform: "rotateX(90deg)" }, { transform: "none" }], { duration: 300, easing: "ease-out" });
+  }));
+});
+/* live output bits */
+$$(".bit[data-expr]").forEach((el) => {
+  const f = evalIn(el.dataset.expr);
+  S(el.dataset.scope).on((v) => {
+    const r = f(v);
+    el.classList.toggle("is1", !!r);
+    el.textContent = r ? el.dataset.on || "1" : el.dataset.off || "0";
+  });
+});
+
+/* truth tables */
+$$("table.tt[data-cols]").forEach((t) => {
+  const sc = S(t.dataset.scope), vars = t.dataset.vars.split(","), cols = t.dataset.cols.split(";");
+  const fs = cols.map(evalIn), n = vars.length, rows = 1 << n;
+  const env = (r) => Object.fromEntries(vars.map((v, k) => [v, (r >> (n - 1 - k)) & 1]));
+  const head = (c, k) => (t.dataset.colname && k === cols.length - 1 ? t.dataset.colname : html(parse(c)));
+  if (t.dataset.orient === "h") {
+    let h = t.dataset.head ? "<tr><th></th>" + Array.from({ length: rows }, (_, r) => `<th>${t.dataset.head}${r}</th>`).join("") + "</tr>" : "";
+    vars.forEach((v, k) => { h += `<tr><td>${v}</td>` + Array.from({ length: rows }, (_, r) => `<td data-r="${r}">${(r >> (n - 1 - k)) & 1}</td>`).join("") + "</tr>"; });
+    cols.forEach((c, k) => { h += `<tr><td>${t.dataset.colname || "F"}</td>` + Array.from({ length: rows }, (_, r) => { const o = fs[k](env(r)); return `<td data-r="${r}" class="${o ? "o1" : ""}">${o}</td>`; }).join("") + "</tr>"; });
+    t.innerHTML = h;
+    $$("td[data-r]", t).forEach((td) => td.addEventListener("click", () => { const e = env(+td.dataset.r); Object.assign(sc.v, e); sc.emit(); }));
+    sc.on((v) => { const r = vars.reduce((a, x) => (a << 1) | (v[x] ? 1 : 0), 0); $$("td[data-r]", t).forEach((td) => td.classList.toggle("here", +td.dataset.r === r)); });
+  } else {
+    let h = "<tr>" + vars.map((v) => `<th><i>${v}</i></th>`).join("") + cols.map((c, k) => `<th>${head(c, k)}</th>`).join("") + "</tr>";
+    for (let r = 0; r < rows; r++) {
+      const e = env(r);
+      h += `<tr data-r="${r}">` + vars.map((v) => `<td>${e[v]}</td>`).join("") + fs.map((f, k) => { const o = f(e); return `<td class="${o && k === fs.length - 1 ? "o1" : ""}">${o}</td>`; }).join("") + "</tr>";
+    }
+    t.innerHTML = h;
+    $$("tr[data-r]", t).forEach((tr) => tr.addEventListener("click", () => { Object.assign(sc.v, env(+tr.dataset.r)); sc.emit(); }));
+    sc.on((v) => { const r = vars.reduce((a, x) => (a << 1) | (v[x] ? 1 : 0), 0); $$("tr[data-r]", t).forEach((tr) => tr.classList.toggle("here", +tr.dataset.r === r)); });
+  }
+});
+
+/* ================= switching-circuit engine ================= */
+const SW_W = 112, SW_H = 78, GAP = 26, RAIL = 26, VGAP = 18;
+function parseNet(src) {
+  const s = src.replace(/\s+/g, ""); let i = 0, id = 0;
+  function node() {
+    let hl = false; if (s[i] === "!") { hl = true; i++; }
+    if (s.startsWith("ser(", i) || s.startsWith("par(", i)) {
+      const t = s.slice(i, i + 3); i += 4; const items = [];
+      while (s[i] !== ")") { items.push(node()); if (s[i] === ",") i++; }
+      i++; return { t, items, hl };
+    }
+    const v = s[i++]; let neg = false; while (s[i] === "'") { neg = !neg; i++; }
+    return { t: "sw", v, neg, hl };
+  }
+  const root = node();
+  (function num(n) { n.id = id++; (n.items || []).forEach(num); })(root);
+  return root;
+}
+function measure(n) {
+  if (n.t === "sw") return { w: SW_W, h: SW_H };
+  const ms = n.items.map(measure);
+  return n.t === "ser"
+    ? { w: ms.reduce((a, m) => a + m.w, 0) + GAP * (ms.length - 1), h: Math.max(...ms.map((m) => m.h)) }
+    : { w: Math.max(...ms.map((m) => m.w)) + 2 * RAIL, h: ms.reduce((a, m) => a + m.h, 0) + VGAP * (ms.length - 1) };
+}
+const L = (x1, y1, x2, y2, k, extra = "") => `<line class="w" data-k="${k}" ${extra} x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/><line class="e" data-k="${k}" ${extra} x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+function drawNode(n, x, yc, info) {
+  const k = "n" + n.id, m = measure(n); let s = "";
+  if (n.t === "sw") {
+    const a = x + 28, b = x + SW_W - 28, lbl = n.v + (n.neg ? "′" : "");
+    s += L(x, yc, a, yc, k) + L(b, yc, x + SW_W, yc, k);
+    s += `<g class="sw" data-v="${n.v}" data-neg="${n.neg ? 1 : 0}" tabindex="0" role="button" aria-label="Switch ${lbl}"><rect class="hit" x="${x}" y="${yc - 60}" width="${SW_W}" height="76" rx="10"/><line class="lev" x1="${a}" y1="${yc}" x2="${b}" y2="${yc}" style="transform-origin:${a}px ${yc}px"/><circle class="ct" cx="${a}" cy="${yc}" r="6"/><circle class="ct" cx="${b}" cy="${yc}" r="6"/><text class="lbl" x="${x + SW_W / 2}" y="${yc - 34}" text-anchor="middle">${lbl}</text></g>`;
+  } else if (n.t === "ser") {
+    let cx = x;
+    n.items.forEach((it, j) => { const im = measure(it); s += drawNode(it, cx, yc, info); cx += im.w; if (j < n.items.length - 1) { s += L(cx, yc, cx + GAP, yc, k); cx += GAP; } });
+  } else {
+    const top = yc - m.h / 2, xr = x + m.w, inner = m.w - 2 * RAIL; let cy = top; const br = [];
+    n.items.forEach((it) => {
+      const im = measure(it), ic = cy + im.h / 2, ix = x + RAIL + (inner - im.w) / 2, ck = "n" + it.id;
+      s += L(x, ic, ix, ic, ck) + L(ix + im.w, ic, xr, ic, ck) + drawNode(it, ix, ic, info);
+      br.push({ c: ic, id: it.id }); cy += im.h + VGAP;
+    });
+    info[n.id] = { yc, br };
+    const pts = [...new Set([...br.map((b) => b.c), yc])].sort((p, q) => p - q);
+    for (let j = 0; j < pts.length - 1; j++) {
+      const ex = `data-par="${n.id}" data-p="${pts[j]}" data-q="${pts[j + 1]}"`;
+      s += L(x, pts[j], x, pts[j + 1], "R", ex) + L(xr, pts[j], xr, pts[j + 1], "R", ex);
+    }
+  }
+  return `<g class="nd${n.hl ? " hl" : ""}" data-id="${n.id}">${s}</g>`;
+}
+function circuitSVG(net, info) {
+  const m = measure(net), left = 46, netW = Math.max(m.w, 300), top = 60, yc = top + m.h / 2;
+  const W = left * 2 + netW + 8, yb = top + m.h + 64, H = yb + 52, nx = left + (netW - m.w) / 2, xr = W - left + 4, x0 = left - 18;
+  const bx = x0 + (xr - x0) * 0.3, lx = x0 + (xr - x0) * 0.7;
+  let s = L(x0, yc, nx, yc, "root") + L(nx + m.w, yc, xr, yc, "root") + L(x0, yc, x0, yb, "root") + L(xr, yc, xr, yb, "root") + L(x0, yb, bx - 8, yb, "root") + L(bx + 8, yb, lx - 24, yb, "root") + L(lx + 24, yb, xr, yb, "root");
+  s += drawNode(net, nx, yc, info);
+  s += `<g class="bat"><line x1="${bx - 8}" y1="${yb - 26}" x2="${bx - 8}" y2="${yb + 26}"/><line class="neg" x1="${bx + 8}" y1="${yb - 14}" x2="${bx + 8}" y2="${yb + 14}"/><text x="${bx - 24}" y="${yb - 30}">+</text></g>`;
+  let rays = "";
+  for (let r = 0; r < 8; r++) { const a = (Math.PI * 2 * r) / 8; rays += `<line x1="${(lx + 34 * Math.cos(a)).toFixed(1)}" y1="${(yb + 34 * Math.sin(a)).toFixed(1)}" x2="${(lx + 47 * Math.cos(a)).toFixed(1)}" y2="${(yb + 47 * Math.sin(a)).toFixed(1)}"/>`; }
+  s += `<g class="lamp"><circle class="halo" cx="${lx}" cy="${yb}" r="46"/><g class="rays" style="transform-origin:${lx}px ${yb}px">${rays}</g><circle class="glass" cx="${lx}" cy="${yb}" r="24"/><path class="fil" d="M${lx - 14} ${yb - 14}L${lx + 14} ${yb + 14}M${lx + 14} ${yb - 14}L${lx - 14} ${yb + 14}"/></g>`;
+  return `<svg class="csvg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Switching circuit">${s}</svg>`;
+}
+const circuits = {};
+$$(".circuit[data-net]").forEach((el) => {
+  const net = parseNet(el.dataset.net), info = {}, sc = S(el.dataset.scope);
+  el.insertAdjacentHTML("afterbegin", circuitSVG(net, info));
+  const svg = $("svg", el), ks = $$("[data-k]", svg), sws = $$(".sw", svg), lamp = $(".lamp", svg);
+  if (el.dataset.cid) circuits[el.dataset.cid] = svg;
+  sws.forEach((g) => {
+    g.addEventListener("click", () => sc.toggle(g.dataset.v));
+    g.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); sc.toggle(g.dataset.v); } });
+  });
+  sc.on((v) => {
+    const val = (x, neg) => (v[x] ? 1 : 0) ^ (neg ? 1 : 0);
+    const cond = (n) => (n.t === "sw" ? val(n.v, n.neg) : n.t === "ser" ? n.items.every(cond) : n.items.some(cond));
+    const act = {};
+    const flow = (n, a) => { act[n.id] = a; if (n.items) n.items.forEach((c) => flow(c, n.t === "ser" ? a : a && !!cond(c))); };
+    const on = !!cond(net); flow(net, on);
+    ks.forEach((l) => {
+      const k = l.dataset.k; let live;
+      if (k === "root") live = on;
+      else if (k === "R") {
+        const pi = info[l.dataset.par], p = +l.dataset.p, q = +l.dataset.q;
+        live = act[l.dataset.par] && pi.br.some((b) => act[b.id] && ((p >= pi.yc && b.c >= q) || (q <= pi.yc && b.c <= p)));
+      } else live = !!act[+k.slice(1)];
+      l.classList.toggle("live", !!live);
+    });
+    sws.forEach((g) => g.classList.toggle("closed", !!val(g.dataset.v, g.dataset.neg === "1")));
+    lamp.classList.toggle("on", on);
+  });
+});
+
+/* ================= Venn diagrams ================= */
+let vid = 0;
+$$(".venn-w").forEach((el) => {
+  const u = "vn" + vid++, f = evalIn(el.dataset.expr);
+  const A = 'cx="102" cy="88" r="56"', B = 'cx="158" cy="88" r="56"';
+  el.innerHTML = `<svg class="venn" viewBox="0 0 260 176" role="img" aria-label="Venn diagram of ${esc(el.dataset.expr)}"><defs>
+    <clipPath id="${u}ca"><circle ${A}/></clipPath>
+    <mask id="${u}nb"><rect width="260" height="176" fill="#fff"/><circle ${B} fill="#000"/></mask>
+    <mask id="${u}na"><rect width="260" height="176" fill="#fff"/><circle ${A} fill="#000"/></mask>
+    <mask id="${u}nab"><rect width="260" height="176" fill="#fff"/><circle ${A} fill="#000"/><circle ${B} fill="#000"/></mask></defs>
+    <rect class="u" x="8" y="8" width="244" height="160" rx="18"/>
+    <rect class="rg" data-r="00" x="8" y="8" width="244" height="160" rx="18" mask="url(#${u}nab)"/>
+    <circle class="rg" data-r="10" ${A} mask="url(#${u}nb)"/><circle class="rg" data-r="01" ${B} mask="url(#${u}na)"/>
+    <circle class="rg" data-r="11" ${B} clip-path="url(#${u}ca)"/>
+    <circle class="ol" ${A}/><circle class="ol" ${B}/>
+    <text x="70" y="96">x</text><text x="178" y="96">y</text>
+    <circle class="dot" r="9" cx="0" cy="0"/></svg>`;
+  $$(".rg", el).forEach((r) => r.classList.toggle("on", !!f({ x: +r.dataset.r[0], y: +r.dataset.r[1] })));
+  const pos = { "10": [80, 118], "01": [180, 118], "11": [130, 88], "00": [32, 34] }, dot = $(".dot", el);
+  S(el.dataset.scope).on((v) => { const [x, y] = pos[`${v.x ? 1 : 0}${v.y ? 1 : 0}`]; dot.style.transform = `translate(${x}px, ${y}px)`; });
+});
+
+/* ================= minimiser + K-maps ================= */
+const pop = (x) => { let c = 0; while (x) { c += x & 1; x >>= 1; } return c; };
+function minimize(n, ones) {
+  const N = 1 << n;
+  if (!ones.size) return [];
+  if (ones.size === N) return [{ mask: N - 1, val: 0, cells: [...ones] }];
+  const imps = [];
+  for (let mask = 0; mask < N; mask++) for (let val = 0; val < N; val++) {
+    if (val & mask) continue;
+    const cells = []; let ok = true;
+    for (let m = 0; m < N; m++) if ((m & ~mask) === val) { if (!ones.has(m)) { ok = false; break; } cells.push(m); }
+    if (ok) imps.push({ mask, val, cells });
+  }
+  const primes = imps.filter((a) => !imps.some((b) => b.cells.length > a.cells.length && a.cells.every((c) => b.cells.includes(c))));
+  const need = [...ones], P = primes.length;
+  let best = null;
+  const lits = (p) => n - pop(p.mask);
+  if (P <= 16) {
+    for (let sub = 1; sub < 1 << P; sub++) {
+      const k = pop(sub); if (best && k > best.k) continue;
+      const cov = new Set(); let l = 0;
+      for (let j = 0; j < P; j++) if (sub >> j & 1) { primes[j].cells.forEach((c) => cov.add(c)); l += lits(primes[j]); }
+      if (need.every((c) => cov.has(c)) && (!best || k < best.k || (k === best.k && l < best.l))) best = { k, l, sub };
+    }
+    return primes.filter((_, j) => best.sub >> j & 1).sort((a, b) => b.cells.length - a.cells.length);
+  }
+  const left = new Set(need), pick = [];
+  while (left.size) { const p = primes.reduce((a, b) => (b.cells.filter((c) => left.has(c)).length > a.cells.filter((c) => left.has(c)).length ? b : a)); pick.push(p); p.cells.forEach((c) => left.delete(c)); }
+  return pick;
+}
+const termOf = (p, vars) => { const n = vars.length; let t = ""; vars.forEach((v, k) => { const bit = 1 << (n - 1 - k); if (!(p.mask & bit)) t += v + (p.val & bit ? "" : "'"); }); return t || "1"; };
+const sopOf = (ps, vars) => (ps.length ? ps.map((p) => termOf(p, vars)).join(" + ") : "0");
+const GRAY = [0, 1, 3, 2], GIDX = { 0: 0, 1: 1, 3: 2, 2: 3 };
+const GCOL = ["var(--accent)", "var(--off)", "var(--good)", "var(--current)", "var(--on)", "#A78BFA"];
+function runs(idx, len) {
+  const s = [...new Set(idx)].sort((a, b) => a - b);
+  if (s.length === len) return [[0, len]];
+  const out = []; let st = s[0], pv = s[0];
+  for (let j = 1; j <= s.length; j++) { if (j < s.length && s[j] === pv + 1) { pv = s[j]; continue; } out.push([st, pv - st + 1]); if (j < s.length) { st = pv = s[j]; } }
+  return out;
+}
+function kmapRender(el, n, vars, ones, gsteps) {
+  const rbits = n - 2, rows = 1 << rbits, cols = 4;
+  const rv = vars.slice(0, rbits).join(""), cv = vars.slice(rbits).join("");
+  const rcode = (r) => (rbits === 1 ? String(r) : GRAY[r].toString(2).padStart(2, "0"));
+  el.style.setProperty("--rows", rows); el.style.setProperty("--cols", cols);
+  const at = (r, c) => `style="grid-row:${r};grid-column:${c}"`;
+  let h = `<div class="kc corner" ${at(1, 1)}>${rv}\\${cv}</div>` + [0, 1, 2, 3].map((c) => `<div class="kc" ${at(1, c + 2)}>${GRAY[c].toString(2).padStart(2, "0")}</div>`).join("");
+  for (let r = 0; r < rows; r++) {
+    h += `<div class="kc" ${at(r + 2, 1)}>${rcode(r)}</div>`;
+    for (let c = 0; c < cols; c++) { const m = (rbits === 1 ? r : GRAY[r]) * 4 + GRAY[c], v = ones.has(m) ? 1 : 0; h += `<div class="cell${v ? " v1" : ""}" data-m="${m}" ${at(r + 2, c + 2)}>${v}<span class="mi">m${m}</span></div>`; }
+  }
+  const groups = minimize(n, ones);
+  let ov = "";
+  groups.forEach((g, gi) => {
+    const rs = [], cs = [];
+    g.cells.forEach((m) => { const rr = m >> 2, cc = m & 3; rs.push(rbits === 1 ? rr : GIDX[rr]); cs.push(GIDX[cc]); });
+    const ins = 4 + (gi % 3) * 4;
+    runs(rs, rows).forEach(([r0, rl]) => runs(cs, cols).forEach(([c0, cl]) => {
+      const st = gsteps ? ` data-step="${gsteps[gi]}"` : "";
+      ov += `<div class="grp"${st} style="--gc:${GCOL[gi % 6]};left:calc(${(c0 / cols) * 100}% + ${ins}px);top:calc(${(r0 / rows) * 100}% + ${ins}px);width:calc(${(cl / cols) * 100}% - ${2 * ins}px);height:calc(${(rl / rows) * 100}% - ${2 * ins}px);animation-delay:${gi * 120}ms"></div>`;
+    }));
+  });
+  el.innerHTML = h + `<div class="ov">${ov}</div>`;
+  return groups;
+}
+$$(".kmap[data-ones]").forEach((el) => {
+  const vars = el.dataset.vars.split(","), ones = new Set(el.dataset.ones.split(",").map(Number));
+  kmapRender(el, vars.length, vars, ones, el.dataset.gsteps ? el.dataset.gsteps.split(",") : null);
+  if (el.dataset.scope) S(el.dataset.scope).on((v) => { const m = vars.reduce((a, x) => (a << 1) | (v[x] ? 1 : 0), 0); $$(".cell", el).forEach((c) => c.classList.toggle("here", +c.dataset.m === m)); });
+});
+
+/* shared 3-variable function (slides 15–16) */
+const FN = { vars: ["x", "y", "z"], init: [1, 4, 5, 6, 7], ones: new Set([1, 4, 5, 6, 7]), subs: [], emit() { this.subs.forEach((f) => f()); }, toggle(m) { this.ones.has(m) ? this.ones.delete(m) : this.ones.add(m); this.emit(); } };
+const MINS = ["x'y'z'", "x'y'z", "x'yz'", "x'yz", "xy'z'", "xy'z", "xyz'", "xyz"];
+const MAXS = ["x + y + z", "x + y + z'", "x + y' + z", "x + y' + z'", "x' + y + z", "x' + y + z'", "x' + y' + z", "x' + y' + z'"];
+$$("table.canon").forEach((t) => {
+  const draw = () => {
+    let h = "<tr><th><i>x</i></th><th><i>y</i></th><th><i>z</i></th><th>Minterm</th><th>Maxterm</th><th><i>F</i></th></tr>";
+    for (let m = 0; m < 8; m++) {
+      const f = FN.ones.has(m);
+      h += `<tr><td>${m >> 2 & 1}</td><td>${m >> 1 & 1}</td><td>${m & 1}</td><td class="m" style="${f ? "font-weight:700;color:var(--accent-text)" : "opacity:.5"}">m${m} = ${fmt(MINS[m])}</td><td class="m" style="${f ? "opacity:.5" : "font-weight:700;color:var(--off)"}">M${m} = ${fmt(MAXS[m])}</td><td class="${f ? "o1" : ""}" data-m="${m}" title="Click to toggle">${f ? 1 : 0}</td></tr>`;
+    }
+    t.innerHTML = h;
+    $$("td[data-m]", t).forEach((td) => td.addEventListener("click", () => FN.toggle(+td.dataset.m)));
+  };
+  FN.subs.push(draw);
+});
+$$(".kmap[data-fn]").forEach((el) => {
+  const draw = () => {
+    const g = kmapRender(el, 3, FN.vars, FN.ones);
+    $$(".cell", el).forEach((c) => c.addEventListener("click", () => FN.toggle(+c.dataset.m)));
+    $$("[data-terms]").forEach((tm) => { tm.innerHTML = g.map((p, gi) => `<span class="term" style="--gc:${GCOL[gi % 6]}">${fmt(termOf(p, FN.vars))}</span>`).join(""); });
+  };
+  FN.subs.push(draw);
+});
+FN.subs.push(() => {
+  const ones = [...FN.ones].sort((a, b) => a - b), zeros = [0, 1, 2, 3, 4, 5, 6, 7].filter((m) => !FN.ones.has(m));
+  $$("[data-sop]").forEach((e) => (e.innerHTML = ones.length ? fmt("F = ") + "Σ" + fmt("m") + "(" + ones.join(", ") + ")" : fmt("F = 0")));
+  $$("[data-sopx]").forEach((e) => (e.innerHTML = ones.length ? "= " + ones.map((m) => fmt(MINS[m])).join(" + ") : ""));
+  $$("[data-pos]").forEach((e) => (e.innerHTML = zeros.length ? fmt("F = ") + "Π" + fmt("M") + "(" + zeros.join(", ") + ")" : fmt("F = 1")));
+  $$("[data-posx]").forEach((e) => (e.innerHTML = zeros.length ? "= " + zeros.map((m) => "(" + fmt(MAXS[m]) + ")").join("") : ""));
+  $$("[data-min]").forEach((e) => (e.innerHTML = fmt("F = " + sopOf(minimize(3, FN.ones), FN.vars))));
+});
+$$("[data-fn-reset]").forEach((b) => b.addEventListener("click", () => { FN.ones = new Set(FN.init); FN.emit(); }));
+FN.emit();
+
+/* ================= other widgets ================= */
+// team fields
+const team = $("#team");
+team.innerHTML = Array.from({ length: 6 }, (_, i) => `<div class="member"><span class="num">0${i + 1}</span><input class="fld" id="mem-n${i}" placeholder="Member ${i + 1} name" autocomplete="off" aria-label="Member ${i + 1} name"><input class="fld reg" id="mem-r${i}" placeholder="Reg. No." autocomplete="off" aria-label="Member ${i + 1} registration number"></div>`).join("");
+$$(".fld").forEach((f) => { f.value = store.get(f.id, ""); f.addEventListener("input", () => store.set(f.id, f.value)); });
+
+// roadmap
+(() => {
+  const rm = $(".rm"); if (!rm) return;
+  const stops = [["Origins", "Boole, Shannon & the story", 3], ["Basics", "0, 1 and three operations", 4], ["Laws", "Duality & De Morgan", 7], ["Gates", "AND, OR, NOT & friends", 10], ["Circuits", "Series = AND, parallel = OR", 11], ["Simplify", "SOP, POS & K-maps", 15], ["Problem Lab", "6 unique questions", 17], ["Real World", "Where it shows up", 25]];
+  rm.insertAdjacentHTML("beforeend", stops.map(([t, d, g], i) => `<button class="node${i === 6 ? " hot" : ""}" data-go="${g}" style="grid-column:${i + 1}" aria-label="Go to ${t}">0${i + 1}</button><div class="lbl" style="grid-column:${i + 1}"><b>${t}</b><span>${esc(d)}</span></div>`).join(""));
+})();
+$("#qpills").innerHTML = ["Six-Switch Puzzle", "Redundant Branch", "Hostel AC Vote", "Staircase Light", "Mirror Map", "Bank Locker"].map((t, i) => `<button class="pill" data-go="${18 + i}">Q${i + 1} · ${t}</button>`).join("");
+
+// bit flip tile
+const bf = $("#bitflip");
+const flipBit = () => bf.classList.toggle("flipped");
+bf.addEventListener("click", flipBit);
+bf.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); flipBit(); } });
+
+// laws
+const LAWS = [["Identity", "x + 0 = x", "x . 1 = x"], ["Domination", "x + 1 = 1", "x . 0 = 0"], ["Idempotent", "x + x = x", "x . x = x"], ["Complement", "x + x' = 1", "x . x' = 0"], ["Double complement", "(x')' = x", "(x')' = x"], ["Commutative", "x + y = y + x", "xy = yx"], ["Associative", "x + (y + z) = (x + y) + z", "x(yz) = (xy)z"], ["Distributive", "x + yz = (x + y)(x + z)", "x(y + z) = xy + xz"], ["Absorption", "x + xy = x", "x(x + y) = x"], ["De Morgan", "(x + y)' = x'y'", "(xy)' = x' + y'"]];
+$("#laws").innerHTML = LAWS.map(([n, a, b]) => `<div class="flip" tabindex="0" role="button" aria-label="${n} law: flip to see its dual" style="height:10rem"><div class="flip-in"><div class="face"><span class="ln">${n}</span><span class="m">${fmt(a)}</span></div><div class="face back"><span class="ln">${n} · dual</span><span class="m">${fmt(b)}</span></div></div></div>`).join("");
+$$("#laws .flip").forEach((f) => { f.addEventListener("click", () => f.classList.toggle("flipped")); f.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); f.classList.toggle("flipped"); } }); });
+$("#flipall").addEventListener("click", () => { const all = $$("#laws .flip"), to = !all.every((f) => f.classList.contains("flipped")); all.forEach((f, i) => setTimeout(() => f.classList.toggle("flipped", to), RM.matches ? 0 : i * 70)); });
+
+// duality machine
+(() => {
+  const P = ["x + 0 = x", "x + x'y = x + y", "x(y + 0) + 1", "x + yz = (x + y)(x + z)", "(x + y)' = x'y'"];
+  const box = $("#dual-presets"), src = $("#dual-src"), out = $("#dual-out"); let cur = 1;
+  const sides = (t) => t.split("=").map((p) => parse(p));
+  const render = () => { src.innerHTML = sides(P[cur]).map((a) => html(a, { dots: true })).join(' <b class="eq">=</b> '); out.innerHTML = "?"; out.style.opacity = .35; };
+  box.innerHTML = P.map((p, i) => `<button class="btn" data-i="${i}"><span class="m">${fmt(p)}</span></button>`).join("");
+  $$("button", box).forEach((b) => b.addEventListener("click", () => { cur = +b.dataset.i; render(); }));
+  $("#dual-run").addEventListener("click", () => {
+    out.innerHTML = src.innerHTML; out.style.opacity = 1;
+    const toks = $$(".op, .k", out);
+    toks.forEach((t, i) => {
+      const nt = t.classList.contains("k") ? String(1 - +t.textContent) : t.textContent === "+" ? "·" : "+";
+      if (RM.matches) { t.textContent = nt; return; }
+      t.style.display = "inline-block";
+      t.animate([{ transform: "rotateX(0)", color: "var(--fg)" }, { transform: "rotateX(90deg)", color: "var(--on)" }], { duration: 220, delay: i * 120, fill: "forwards" }).onfinish = () => {
+        t.textContent = nt;
+        t.animate([{ transform: "rotateX(90deg)", color: "var(--on)" }, { transform: "rotateX(0)", color: "var(--on)" }], { duration: 260, fill: "forwards" });
+      };
+    });
+    setTimeout(() => {
+      const fin = sides(P[cur]).map((a) => html(dual(a), { dots: true })).join(' <b class="eq">=</b> ');
+      out.innerHTML = fin;
+      if (!RM.matches) out.animate([{ filter: "blur(4px)", opacity: .4 }, { filter: "blur(0)", opacity: 1 }], { duration: 400 });
+    }, RM.matches ? 0 : toks.length * 120 + 650);
+  });
+  render();
+})();
+
+// De Morgan break-the-bar
+function deMorgan(el, op, nop, lhs, rhs) {
+  el.innerHTML = `<div class="row" style="justify-content:space-between"><span class="tag">${op === "+" ? "Law 1" : "Law 2"}</span><button class="btn primary"><span>${ICONS.swap}</span>Break the bar</button></div>
+  <div class="row" style="justify-content:space-around;gap:1rem;flex-wrap:nowrap">
+    <div class="dm m" style="font-size:2.6rem;position:relative;padding-top:.3em"><span class="t">x<i class="bar"></i></span><span class="o"><b class="op">${op}</b><i class="bar"></i></span><span class="t">y<i class="bar"></i></span></div>
+    <div class="venn-host" style="width:12rem"></div><div class="venn-host" style="width:12rem"></div>
+  </div><p class="muted small">${lhs} = ${rhs}: the shaded regions match.</p>`;
+  const hosts = $$(".venn-host", el);
+  [lhs, rhs].forEach((ex, i) => { hosts[i].innerHTML = `<div class="venn-w" data-x="${ex}"></div><p class="cap m">${fmt(ex)}</p>`; });
+  return el;
+}
+(() => {
+  const css = document.createElement("style");
+  css.textContent = `.dm{display:inline-flex;align-items:flex-end}.dm .t,.dm .o{position:relative;padding:0 .12em;display:inline-block}.dm .t{font-style:italic}.dm .bar{position:absolute;left:0;right:0;top:.05em;height:.07em;background:var(--fg);border-radius:0;transition:transform .5s cubic-bezier(.5,1.6,.4,1),opacity .4s,left .4s,right .4s}.dm.broken .o .bar{transform:scaleX(0);opacity:0}.dm.broken .t .bar{left:.1em;right:.1em;background:var(--on);border-radius:1em}.dm .op{display:inline-block;transition:transform .4s}.dm.broken .op{color:var(--on)}`;
+  document.head.appendChild(css);
+  [["#dm1", "+", "·", "(x + y)'", "x'y'"], ["#dm2", "·", "+", "(xy)'", "x' + y'"]].forEach(([sel, op, nop, l, r]) => {
+    const el = deMorgan($(sel), op, nop, l, r);
+    $$(".venn-w", el).forEach((v) => {
+      const f = evalIn(v.dataset.x), u = "dmv" + vid++;
+      v.innerHTML = `<svg class="venn" viewBox="0 0 260 176" role="img" aria-label="Venn diagram"><defs><clipPath id="${u}ca"><circle cx="102" cy="88" r="56"/></clipPath><mask id="${u}nb"><rect width="260" height="176" fill="#fff"/><circle cx="158" cy="88" r="56" fill="#000"/></mask><mask id="${u}na"><rect width="260" height="176" fill="#fff"/><circle cx="102" cy="88" r="56" fill="#000"/></mask><mask id="${u}nab"><rect width="260" height="176" fill="#fff"/><circle cx="102" cy="88" r="56" fill="#000"/><circle cx="158" cy="88" r="56" fill="#000"/></mask></defs><rect class="u" x="8" y="8" width="244" height="160" rx="18"/><rect class="rg" data-r="00" x="8" y="8" width="244" height="160" rx="18" mask="url(#${u}nab)"/><circle class="rg" data-r="10" cx="102" cy="88" r="56" mask="url(#${u}nb)"/><circle class="rg" data-r="01" cx="158" cy="88" r="56" mask="url(#${u}na)"/><circle class="rg" data-r="11" cx="158" cy="88" r="56" clip-path="url(#${u}ca)"/><circle class="ol" cx="102" cy="88" r="56"/><circle class="ol" cx="158" cy="88" r="56"/><text x="70" y="96">x</text><text x="178" y="96">y</text></svg>`;
+      $$(".rg", v).forEach((r) => r.classList.toggle("on", !!f({ x: +r.dataset.r[0], y: +r.dataset.r[1] })));
+    });
+    const dm = $(".dm", el), opEl = $(".op", el), btn = $("button", el);
+    btn.addEventListener("click", () => {
+      const broken = !dm.classList.contains("broken");
+      dm.classList.toggle("broken", broken);
+      const swap = () => (opEl.textContent = broken ? nop : op);
+      if (RM.matches) return swap();
+      opEl.animate([{ transform: "rotate(0)" }, { transform: "rotate(180deg) scale(.4)" }], { duration: 200 }).onfinish = () => { swap(); opEl.animate([{ transform: "rotate(-180deg) scale(.4)" }, { transform: "none" }], { duration: 300, easing: "cubic-bezier(.5,1.6,.4,1)" }); };
+      $("span", btn).nextSibling.textContent = broken ? "Join the bar" : "Break the bar";
+    });
+  });
+})();
+
+// gates playground
+(() => {
+  const G = [["AND", "AB", "A · B"], ["OR", "A+B", "A + B"], ["NOT", "A'", "A′"], ["NAND", "(AB)'", "(A · B)′"], ["NOR", "(A+B)'", "(A + B)′"], ["XOR", "AB'+A'B", "A ⊕ B"]];
+  const x0 = 56, gw = 96, y0 = 15, gh = 90, ym = y0 + gh / 2;
+  const andP = `M${x0} ${y0} H${x0 + gw / 2} A${gh / 2} ${gh / 2} 0 0 1 ${x0 + gw / 2} ${y0 + gh} H${x0} Z`;
+  const orP = `M${x0 - 6} ${y0} Q${x0 + 22} ${ym} ${x0 - 6} ${y0 + gh} Q${x0 + gw * 0.62} ${y0 + gh} ${x0 + gw} ${ym} Q${x0 + gw * 0.62} ${y0} ${x0 - 6} ${y0} Z`;
+  const body = (t) => {
+    const bub = (bx) => `<circle class="gb" cx="${bx + 8}" cy="${ym}" r="8"/>`;
+    if (t === "AND") return [`<path class="gb" d="${andP}"/>`, x0 + gw, x0];
+    if (t === "NAND") return [`<path class="gb" d="${andP}"/>${bub(x0 + gw)}`, x0 + gw + 16, x0];
+    if (t === "OR") return [`<path class="gb" d="${orP}"/>`, x0 + gw, x0 + 8];
+    if (t === "NOR") return [`<path class="gb" d="${orP}"/>${bub(x0 + gw)}`, x0 + gw + 16, x0 + 8];
+    if (t === "XOR") return [`<path class="gb" d="${orP}"/><path d="M${x0 - 18} ${y0} Q${x0 + 10} ${ym} ${x0 - 18} ${y0 + gh}" fill="none" stroke="var(--wire)" stroke-width="4"/>`, x0 + gw, x0 - 12];
+    return [`<path class="gb" d="M${x0 + 6} ${y0 + 8} L${x0 + gw - 14} ${ym} L${x0 + 6} ${y0 + gh - 8} Z"/>${bub(x0 + gw - 14)}`, x0 + gw + 2, x0 + 6];
+  };
+  $("#gates").innerHTML = G.map(([t, e, show]) => {
+    const [b, ox, ie] = body(t), ins = t === "NOT" ? [ym] : [y0 + 25, y0 + gh - 25];
+    const wires = ins.map((y, i) => `<line class="gw" data-in="${i ? "B" : "A"}" x1="12" y1="${y}" x2="${ie}" y2="${y}"/><text x="2" y="${y + 6}" style="font:italic 700 18px var(--f-math);fill:var(--muted)">${i ? "B" : "A"}</text>`).join("");
+    return `<div class="card gate-card in" data-expr="${e}"><svg viewBox="-4 0 250 120" role="img" aria-label="${t} gate">${wires}${b}<line class="gw out" x1="${ox}" y1="${ym}" x2="222" y2="${ym}"/><circle class="led" cx="232" cy="${ym}" r="10"/></svg><div><h3>${t}${t === "NAND" || t === "NOR" ? '<span class="badge-u">UNIVERSAL</span>' : ""}</h3><div class="m" style="font-size:1.5rem;color:var(--accent-text)">${fmt(show)}</div><span class="bit" style="margin-top:.4rem"></span></div></div>`;
+  }).join("");
+  $$("#gates .gate-card").forEach((c) => {
+    const f = evalIn(c.dataset.expr);
+    S("g").on((v) => {
+      const o = f(v);
+      $$(".gw[data-in]", c).forEach((w) => w.classList.toggle("live", !!v[w.dataset.in]));
+      $(".gw.out", c).classList.toggle("live", !!o); $(".led", c).classList.toggle("live", !!o);
+      const bt = $(".bit", c); bt.classList.toggle("is1", !!o); bt.textContent = "Output " + o;
+    });
+  });
+})();
+
+// Q3 AC unit
+(() => {
+  const el = $("#ac"), f = evalIn(el.dataset.expr);
+  el.innerHTML = `<svg viewBox="0 0 320 130" role="img" aria-label="Air conditioner"><rect class="ac-body" x="40" y="10" width="240" height="62" rx="14"/><line class="st" x1="62" y1="56" x2="258" y2="56" style="stroke-width:3"/><circle class="ac-led" cx="258" cy="30" r="7"/><text x="62" y="36">Room AC</text><text class="ac-st" x="160" y="36">OFF</text>${[80, 130, 180, 230].map((x) => `<path class="air" d="M${x} 80 q 10 12 0 24 q -10 12 0 24"/>`).join("")}</svg>`;
+  S("q3").on((v) => { const on = !!f(v); $$(".air", el).forEach((a) => a.classList.toggle("on", on)); $(".ac-led", el).classList.toggle("on", on); $(".ac-st", el).textContent = on ? "ON · cooling" : "OFF"; });
+})();
+// Q4 stairs
+(() => {
+  const el = $("#stairs"), sc = S("q4");
+  el.innerHTML = `<svg viewBox="0 -24 340 224" role="img" aria-label="Staircase with two light switches"><path class="beam" d="M170 40 L110 190 L230 190 Z"/><polyline class="st" points="20,190 80,190 80,160 120,160 120,130 160,130 160,100 200,100 200,70 240,70 240,40 320,40"/><line class="st" x1="170" y1="6" x2="170" y2="22"/><circle class="bulb" cx="170" cy="34" r="13"/>
+  <g class="plate-g" data-v="x" tabindex="0" role="button" aria-label="Bottom switch x"><rect class="plate" x="30" y="128" width="30" height="46" rx="6"/><rect class="knob" x="38" y="150" width="14" height="16" rx="3"/><text x="28" y="122">x</text></g>
+  <g class="plate-g" data-v="y" tabindex="0" role="button" aria-label="Top switch y"><rect class="plate" x="282" y="-10" width="30" height="46" rx="6" transform="translate(0 0)"/><rect class="knob" x="290" y="12" width="14" height="16" rx="3"/><text x="318" y="2">y</text></g></svg>`;
+  $$(".plate-g", el).forEach((g) => { g.style.cursor = "pointer"; g.addEventListener("click", () => sc.toggle(g.dataset.v)); g.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); sc.toggle(g.dataset.v); } }); });
+  sc.on((v) => {
+    const on = (v.x ? 1 : 0) ^ (v.y ? 1 : 0);
+    $$(".plate-g", el).forEach((g) => { const k = $(".knob", g), up = !!v[g.dataset.v]; k.classList.toggle("up", up); k.style.transform = up ? "translateY(-14px)" : "none"; });
+    $(".bulb", el).classList.toggle("on", !!on); $(".beam", el).classList.toggle("on", !!on);
+  });
+})();
+// Q6 vault
+(() => {
+  const el = $("#vault"), f = evalIn("MC+E");
+  el.innerHTML = `<svg viewBox="0 0 200 200" role="img" aria-label="Bank locker"><rect x="20" y="20" width="160" height="150" rx="14" class="ac-body"/><rect class="gold" x="60" y="110" width="34" height="16" rx="3"/><rect class="gold" x="98" y="110" width="34" height="16" rx="3"/><rect class="gold" x="79" y="92" width="34" height="16" rx="3"/>
+  <g class="door"><rect x="32" y="30" width="136" height="130" rx="10" fill="var(--surface-2)" stroke="var(--wire)" stroke-width="3"/><g class="wheel"><circle cx="135" cy="95" r="20" fill="none" stroke="var(--wire)" stroke-width="4"/><line x1="135" y1="70" x2="135" y2="120" class="st"/><line x1="110" y1="95" x2="160" y2="95" class="st"/></g></g><text class="vs" x="100" y="190" text-anchor="middle">LOCKED</text></svg>`;
+  S("q6").on((v) => { const on = !!f(v); $(".door", el).classList.toggle("open", on); $(".wheel", el).classList.toggle("open", on); const t = $(".vs", el); t.textContent = on ? "OPEN" : "LOCKED"; t.style.fill = on ? "var(--good)" : "var(--off)"; });
+})();
+
+// quiz
+(() => {
+  const Q = [
+    ["Simplify x + xy", ["x", "y", "xy", "x + y"], 0, "Absorption: x + xy = x(1 + y) = x · 1 = x."],
+    ["Switches x and y in parallel, then in series with x′. The circuit computes…", ["x'y", "x + y", "0", "xy'"], 0, "x′(x + y) = x′x + x′y = 0 + x′y = x′y."],
+    ["The dual of x + 0 = x is…", ["x . 1 = x", "x + 1 = 1", "x' + 1 = x'", "x . 0 = 0"], 0, "Swap + with · and 0 with 1."],
+    ["How many rows does the truth table of a 4-variable function have?", ["8", "16", "32", "256"], 1, "Each variable doubles the rows: 2⁴ = 16."],
+    ["(x + y)′ equals…", ["x' + y'", "x'y'", "xy", "(xy)'"], 1, "De Morgan: break the bar, change the sign."],
+  ];
+  const el = $("#quiz"); let i = 0; const res = [];
+  const draw = () => {
+    if (i >= Q.length) {
+      const sc = res.filter(Boolean).length;
+      el.innerHTML = `<div class="card stack" style="align-items:flex-start"><div class="stat">${sc}/${Q.length}</div><p class="qz-q">${sc >= 4 ? "Circuit complete. The whole class lights up!" : "Good try. Flip back through the slides and go again."}</p><button class="btn primary" id="qz-again"><span>${ICONS.redo}</span>Play again</button></div><div class="card stack"><b>Your run</b><div class="qz-dots">${res.map((r) => `<i class="${r ? "ok" : "no"}"></i>`).join("")}</div></div>`;
+      $("#qz-again").addEventListener("click", () => { i = 0; res.length = 0; draw(); });
+      if (sc >= 4) confetti();
+      return;
+    }
+    const [q, opts, ans, ex] = Q[i];
+    el.innerHTML = `<div class="card stack" style="gap:1.2rem"><span class="tag">Question ${i + 1} of ${Q.length}</span><p class="qz-q">${q.replace(/x′|x \+ xy|x \+ 0 = x|\(x \+ y\)′/g, (m) => `<span class="m">${fmt(m.replace("′", "'"))}</span>`)}</p><div class="qz-opts">${opts.map((o, k) => `<button class="qz-opt" data-k="${k}"><span class="m">${fmt(o)}</span></button>`).join("")}</div><p class="qz-ex" aria-live="polite"></p><div class="row"><button class="btn primary" id="qz-next" hidden>Next question <span>${ICONS.right}</span></button></div></div><div class="card stack"><b>Progress</b><div class="qz-dots">${Q.map((_, k) => `<i class="${k < res.length ? (res[k] ? "ok" : "no") : k === i ? "cur" : ""}"></i>`).join("")}</div><p class="muted small">Correct answers turn green. Score 4 or more for a surprise.</p></div>`;
+    $$(".qz-opt", el).forEach((b) => b.addEventListener("click", () => {
+      const k = +b.dataset.k, ok = k === ans;
+      $$(".qz-opt", el).forEach((o) => { o.disabled = true; if (+o.dataset.k === ans) o.classList.add("right"); });
+      if (!ok) b.classList.add("wrong");
+      res.push(ok);
+      $(".qz-ex", el).innerHTML = (ok ? "<b style='color:var(--good)'>Correct.</b> " : "<b style='color:var(--off)'>Not quite.</b> ") + esc(ex);
+      if (ok) { const r = b.getBoundingClientRect(); confetti(r.left + r.width / 2, r.top + r.height / 2, 40); }
+      const nx = $("#qz-next"); nx.hidden = false; nx.focus(); nx.addEventListener("click", () => { i++; draw(); });
+    }));
+  };
+  draw();
+})();
+
+// thanks bytes
+const WORD = "Thanks";
+$("#bytes").innerHTML = [...WORD].map((ch) => `<div class="byte"><code>${ch.charCodeAt(0).toString(2).padStart(8, "0")}</code><b data-l="${ch}">${ch}</b></div>`).join("");
+
+/* ================= confetti ================= */
+const fx = $("#fx"), fctx = fx.getContext("2d"); let parts = [], fxOn = false;
+function confetti(x = innerWidth / 2, y = innerHeight / 3, count = 140) {
+  if (RM.matches) return;
+  const cs = getComputedStyle(document.documentElement), cols = ["--on", "--current", "--accent", "--off", "--good"].map((c) => cs.getPropertyValue(c).trim());
+  for (let k = 0; k < count; k++) { const a = Math.random() * Math.PI * 2, sp = 3 + Math.random() * 7; parts.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 4, r: 3 + Math.random() * 4, c: cols[k % cols.length], life: 80 + Math.random() * 50, rot: Math.random() * 6, b: Math.random() < .5 }); }
+  if (!fxOn) { fxOn = true; requestAnimationFrame(fxLoop); }
+}
+function fxLoop() {
+  const d = Math.min(devicePixelRatio || 1, 2);
+  if (fx.width !== innerWidth * d) { fx.width = innerWidth * d; fx.height = innerHeight * d; }
+  fctx.setTransform(d, 0, 0, d, 0, 0); fctx.clearRect(0, 0, innerWidth, innerHeight);
+  parts = parts.filter((p) => p.life-- > 0);
+  parts.forEach((p) => { p.vy += .18; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.rot += .2; fctx.save(); fctx.translate(p.x, p.y); fctx.rotate(p.rot); fctx.globalAlpha = Math.min(1, p.life / 30); fctx.fillStyle = p.c; if (p.b) fctx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r); else { fctx.font = `700 ${p.r * 4}px monospace`; fctx.fillText(Math.random() < .5 ? "1" : "0", 0, 0); } fctx.restore(); });
+  if (parts.length) requestAnimationFrame(fxLoop); else { fxOn = false; fctx.clearRect(0, 0, innerWidth, innerHeight); }
+}
+
+/* ================= ambient background: pulses on a circuit grid ================= */
+const bg = $("#bgfx"), bctx = bg.getContext("2d"); let bgT = [], bgCol = {};
+function bgColors() { const cs = getComputedStyle(document.documentElement); bgCol = { grid: cs.getPropertyValue("--grid").trim(), cur: cs.getPropertyValue("--current").trim(), on: cs.getPropertyValue("--on").trim() }; }
+function bgInit() {
+  const d = Math.min(devicePixelRatio || 1, 2); bg.width = innerWidth * d; bg.height = innerHeight * d; bctx.setTransform(d, 0, 0, d, 0, 0);
+  const step = 44, w = innerWidth, h = innerHeight; bgT = [];
+  for (let k = 0; k < 16; k++) {
+    let x = Math.round(Math.random() * w / step) * step, y = Math.round(Math.random() * h / step) * step; const pts = [[x, y]];
+    for (let j = 0; j < 5; j++) { const len = step * (2 + Math.floor(Math.random() * 5)); if (j % 2) y += Math.random() < .5 ? len : -len; else x += Math.random() < .5 ? len : -len; pts.push([x, y]); }
+    let L2 = 0; const segs = []; for (let j = 1; j < pts.length; j++) { const l = Math.hypot(pts[j][0] - pts[j - 1][0], pts[j][1] - pts[j - 1][1]); segs.push(l); L2 += l; }
+    bgT.push({ pts, segs, L: L2, t: Math.random() * L2, sp: .6 + Math.random() * 1.2, c: k % 5 === 0 ? "on" : "cur" });
+  }
+}
+function bgDraw() {
+  const w = innerWidth, h = innerHeight; bctx.clearRect(0, 0, w, h);
+  bctx.lineWidth = 2; bctx.strokeStyle = bgCol.grid; bctx.fillStyle = bgCol.grid;
+  for (let gx = 0; gx < w; gx += 44) for (let gy = 0; gy < h; gy += 44) bctx.fillRect(gx - 1, gy - 1, 2, 2);
+  bgT.forEach((tr) => {
+    bctx.beginPath(); tr.pts.forEach(([x, y], j) => (j ? bctx.lineTo(x, y) : bctx.moveTo(x, y))); bctx.stroke();
+    if (!RM.matches) tr.t = (tr.t + tr.sp) % tr.L;
+    let d = tr.t, j = 0; while (j < tr.segs.length && d > tr.segs[j]) { d -= tr.segs[j]; j++; }
+    if (j >= tr.segs.length) return;
+    const [ax, ay] = tr.pts[j], [bx2, by] = tr.pts[j + 1], f = d / tr.segs[j];
+    const px = ax + (bx2 - ax) * f, py = ay + (by - ay) * f;
+    const g = bctx.createRadialGradient(px, py, 0, px, py, 14); g.addColorStop(0, bgCol[tr.c]); g.addColorStop(1, "transparent");
+    bctx.globalAlpha = .55; bctx.fillStyle = g; bctx.beginPath(); bctx.arc(px, py, 14, 0, 7); bctx.fill(); bctx.globalAlpha = 1; bctx.fillStyle = bgCol.grid;
+  });
+}
+let bgRun = true;
+function bgLoop() { if (bgRun) bgDraw(); requestAnimationFrame(bgLoop); }
+document.addEventListener("visibilitychange", () => (bgRun = !document.hidden));
+addEventListener("resize", () => { bgInit(); });
+
+/* ================= theme ================= */
+const root = document.documentElement;
+const saved = store.get("theme", "");
+if (saved) root.dataset.theme = saved;
+const isDark = () => (root.dataset.theme ? root.dataset.theme === "dark" : !matchMedia("(prefers-color-scheme: light)").matches);
+function setThemeIcon() { $("#b-theme").innerHTML = ICONS[isDark() ? "sun" : "moon"]; }
+function toggleTheme() { root.dataset.theme = isDark() ? "light" : "dark"; store.set("theme", root.dataset.theme); setThemeIcon(); bgColors(); }
+$("#b-theme").addEventListener("click", toggleTheme);
+matchMedia("(prefers-color-scheme: light)").addEventListener("change", () => { setThemeIcon(); bgColors(); });
+
+/* ================= deck: navigation, builds, transitions ================= */
+const slides = $$(".slide"), builds = new Map();
+let cur = -1;
+slides.forEach((sl) => {
+  const map = new Map();
+  $$("[data-step]", sl).forEach((e) => { const k = +e.dataset.step; if (!map.has(k)) map.set(k, []); map.get(k).push(e); });
+  builds.set(sl, { groups: [...map.keys()].sort((a, b) => a - b).map((k) => map.get(k)), shown: 0 });
+});
+function reveal(e) {
+  if (RM.matches) return;
+  e.animate([{ filter: "blur(.45rem)", opacity: .22, transform: "translateY(.6rem)" }, { filter: "blur(0)", opacity: 1, transform: "none" }], { duration: 550, easing: "cubic-bezier(.2,.8,.2,1)" });
+  $$(".ex > *", e).forEach((s, i) => s.animate([{ opacity: 0, transform: "translateX(-.8rem)", filter: "blur(4px)" }, { opacity: 1, transform: "none", filter: "blur(0)" }], { duration: 450, delay: 150 + i * 420, fill: "backwards", easing: "cubic-bezier(.2,.8,.2,1)" }));
+  $$("s.cancel", e).forEach((s) => { s.style.setProperty("--strike", 0); setTimeout(() => s.style.setProperty("--strike", 1), 400 + 420 * $$(".ex > *", e).indexOf(s.closest(".ex > *"))); });
+  if (e.classList.contains("answer")) { const r = e.getBoundingClientRect(); confetti(r.left + r.width / 2, r.top + 20, 70); }
+}
+function setBuild(sl, k, animate) {
+  const b = builds.get(sl);
+  b.groups.forEach((g, i) => g.forEach((e) => { const on = i < k, was = !e.classList.contains("pending"); e.classList.toggle("pending", !on); if (!on) $$("s.cancel", e).forEach((c) => c.style.removeProperty("--strike")); if (on && !was && animate) reveal(e); }));
+  b.shown = k;
+  $$(".nd.focus", sl).forEach((n) => n.classList.remove("focus"));
+  const lastF = b.groups.slice(0, k).flat().filter((e) => e.dataset.focus).pop();
+  if (lastF) { const [cid, nid] = lastF.dataset.focus.split(":"); const n = circuits[cid] && $(`.nd[data-id="${nid}"]`, circuits[cid]); if (n) n.classList.add("focus"); }
+}
+$$("[data-reveal]").forEach((btn) => btn.addEventListener("click", () => { const sl = btn.closest(".slide"), b = builds.get(sl); for (let k = b.shown + 1; k <= b.groups.length; k++) setTimeout(() => setBuild(sl, k, true), (k - b.shown - 1) * (RM.matches ? 0 : 450)); }));
+$$("[data-hide]").forEach((btn) => btn.addEventListener("click", () => setBuild(btn.closest(".slide"), 0, false)));
+
+const ENTER = {
+  timeline(sl) { if (RM.matches) return; $(".pulse", sl).animate([{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }], { duration: 1800, easing: "cubic-bezier(.4,0,.2,1)" }); $$(".tl .dot", sl).forEach((d, i) => d.animate([{ transform: "scale(0)" }, { transform: "scale(1.5)" }, { transform: "scale(1)" }], { duration: 500, delay: 200 + i * 300, fill: "backwards" })); $$(".tl .ev", sl).forEach((d, i) => d.animate([{ opacity: 0, transform: `translateY(${d.classList.contains("up") ? "" : "-"}1rem)` }, { opacity: 1, transform: "none" }], { duration: 500, delay: 260 + i * 300, fill: "backwards" })); },
+  fnchart(sl) { if (RM.matches) return; $$(".fn-chart .bar", sl).forEach((b, i) => b.animate([{ height: 0 }, { height: "var(--h)" }], { duration: 900, delay: 200 + i * 180, easing: "cubic-bezier(.3,1.3,.5,1)", fill: "backwards" })); },
+  pay(sl) {
+    if (RM.matches) return;
+    $$(".pay .b", sl).forEach((b, i) => b.animate([{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }], { duration: 800, delay: 150 + i * 110, easing: "cubic-bezier(.3,1.2,.5,1)", fill: "backwards" }));
+    const st = $("#pay-stat"), t0 = performance.now(); const tick = (t) => { const p = Math.min(1, (t - t0) / 1400); st.textContent = Math.round(73 * (1 - Math.pow(1 - p, 3))) + "%"; if (p < 1) requestAnimationFrame(tick); }; requestAnimationFrame(tick);
+  },
+  thanks(sl) {
+    setTimeout(() => confetti(innerWidth * .3, innerHeight * .35, 160), 500);
+    if (RM.matches) return;
+    $$(".byte", sl).forEach((b, i) => {
+      const code = $("code", b), fin = code.textContent, ch = $("b", b), letter = ch.dataset.l; ch.textContent = "";
+      let n = 0; const iv = setInterval(() => { code.textContent = [...fin].map(() => (Math.random() < .5 ? "0" : "1")).join(""); if (++n > 10 + i * 4) { clearInterval(iv); code.textContent = fin; ch.textContent = letter; ch.animate([{ transform: "scale(.2) rotate(-20deg)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 400, easing: "cubic-bezier(.5,1.8,.4,1)" }); } }, 60);
+    });
+  },
+};
+function animateIn(sl) {
+  if (RM.matches) return;
+  $$(".in", sl).forEach((el, i) => el.animate([{ opacity: 0, transform: "translateY(1.2rem) scale(.985)", filter: "blur(6px)" }, { opacity: 1, transform: "none", filter: "blur(0)" }], { duration: 650, delay: 80 + i * 70, easing: "cubic-bezier(.2,.8,.2,1)", fill: "backwards" }));
+}
+function show(n, dir) {
+  if (cur >= 0) slides[cur].classList.remove("active");
+  const sl = slides[n]; sl.classList.add("active"); sl.scrollTop = 0; cur = n;
+  const b = builds.get(sl); setBuild(sl, dir === "prev" ? b.groups.length : 0, false);
+  $(".progress i").style.setProperty("--p", ((n) / (slides.length - 1)) * 100 + "%");
+  $("#counter").innerHTML = `<b>${String(n + 1).padStart(2, "0")}</b> / ${slides.length} · 0b${(n + 1).toString(2).padStart(5, "0")}`;
+  try { history.replaceState(null, "", "#s" + (n + 1)); } catch (e) { /* sandboxed */ }
+  animateIn(sl);
+  if (sl.dataset.enter && ENTER[sl.dataset.enter]) ENTER[sl.dataset.enter](sl);
+}
+function go(n, dir) {
+  if (n < 0 || n >= slides.length || n === cur) return;
+  dir = dir || (n > cur ? "next" : "prev");
+  if (document.startViewTransition && !RM.matches) { root.dataset.dir = dir; const vt = document.startViewTransition(() => show(n, dir)); vt.ready.catch(() => {}); vt.finished.catch(() => {}); }
+  else show(n, dir);
+}
+function next() { const sl = slides[cur], b = builds.get(sl); if (b.shown < b.groups.length) setBuild(sl, b.shown + 1, true); else go(cur + 1, "next"); }
+function prev() { go(cur - 1, "prev"); }
+$("#b-next").addEventListener("click", next);
+$("#b-prev").addEventListener("click", prev);
+document.addEventListener("click", (e) => { const g = e.target.closest("[data-go]"); if (g) go(+g.dataset.go - 1); });
+
+const ov = $("#overview");
+$("#ov-grid").innerHTML = slides.map((s, i) => `<button data-i="${i}"><code>${String(i + 1).padStart(2, "0")} · 0b${(i + 1).toString(2).padStart(5, "0")}</code><b>${esc(s.dataset.label || "")}</b></button>`).join("");
+function toggleOv(force) { const open = force ?? ov.hidden; ov.hidden = !open; if (open) { $$("#ov-grid button").forEach((b) => b.classList.toggle("cur", +b.dataset.i === cur)); $(`#ov-grid button[data-i="${cur}"]`).focus(); } }
+$$("#ov-grid button").forEach((b) => b.addEventListener("click", () => { toggleOv(false); go(+b.dataset.i); }));
+$("#b-ov").addEventListener("click", () => toggleOv());
+function fullscreen() { const d = document; if (d.fullscreenElement) d.exitFullscreen?.().catch(() => {}); else d.documentElement.requestFullscreen?.().catch(() => {}); }
+$("#b-fs").addEventListener("click", fullscreen);
+
+document.addEventListener("keydown", (e) => {
+  const tg = e.target instanceof Element ? e.target : document.body;
+  if (tg.closest("input, textarea, [contenteditable]") || e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key, onCtl = tg.closest("button, [role=button]");
+  if (!ov.hidden) { if (k === "Escape" || k === "o" || k === "O" || k === "g" || k === "G") { e.preventDefault(); toggleOv(false); } return; }
+  if (k === "ArrowRight" || k === "PageDown" || k === "ArrowDown" || ((k === " " || k === "Enter") && !onCtl)) { e.preventDefault(); next(); }
+  else if (k === "ArrowLeft" || k === "PageUp" || k === "ArrowUp" || k === "Backspace") { e.preventDefault(); prev(); }
+  else if (k === "Home") go(0); else if (k === "End") go(slides.length - 1);
+  else if (k === "o" || k === "O" || k === "g" || k === "G") toggleOv(true);
+  else if (k === "f" || k === "F") fullscreen();
+  else if (k === "t" || k === "T") toggleTheme();
+});
+let sx = null, sy = null;
+$("#deck").addEventListener("pointerdown", (e) => { if (e.pointerType === "mouse") return; sx = e.clientX; sy = e.clientY; });
+$("#deck").addEventListener("pointerup", (e) => {
+  if (sx === null) return; const dx = e.clientX - sx, dy = e.clientY - sy; sx = null;
+  if (Math.abs(dx) > 70 && Math.abs(dy) < 50 && !e.target.closest("button, input, .sw, .kmap, .plate-g, .flip")) (dx < 0 ? next : prev)();
+});
+
+/* ================= boot ================= */
+Object.values(scopes).forEach((s) => s.emit());
+setThemeIcon(); bgColors(); bgInit(); requestAnimationFrame(bgLoop);
+const h = /^#s(\d+)$/.exec(location.hash);
+show(h ? Math.min(Math.max(+h[1] - 1, 0), slides.length - 1) : 0, "next");
+})();
+</script>
+</body>
+</html>
