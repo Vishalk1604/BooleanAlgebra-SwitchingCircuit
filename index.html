@@ -250,7 +250,8 @@ mark.hlm { background: color-mix(in srgb, var(--on) 30%, transparent); color: in
 .team-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; }
 .member { display: grid; grid-template-columns: auto 1fr; gap: .1rem .9rem; align-items: center; padding: .7rem 1rem; border-radius: 1rem; border: 1px solid var(--line); background: color-mix(in srgb, var(--surface) 70%, transparent); backdrop-filter: blur(6px); }
 .member .num { grid-row: span 2; width: 2.6rem; height: 2.6rem; border-radius: 50%; display: grid; place-items: center; background: var(--on); color: var(--on-ink); font-weight: 800; font-family: var(--f-mono); font-size: .9rem; }
-.member .fld { width: 100%; font-size: 1.1rem; font-weight: 700; }
+.member .mname { font-size: 1.25rem; font-weight: 800; }
+.member .mreg { font-family: var(--f-mono); font-size: .95rem; color: var(--muted); }
 .member .fld.reg { font-size: .95rem; font-weight: 400; font-family: var(--f-mono); }
 .hero { display: flex; flex-direction: column; gap: .6rem; align-items: center; }
 .hero .circuit { width: 100%; --ch: 19rem; }
@@ -1349,7 +1350,8 @@ FN.emit();
 /* ================= other widgets ================= */
 // team fields
 const team = $("#team");
-team.innerHTML = Array.from({ length: 6 }, (_, i) => `<div class="member"><span class="num">0${i + 1}</span><input class="fld" id="mem-n${i}" placeholder="Member ${i + 1} name" autocomplete="off" aria-label="Member ${i + 1} name"><input class="fld reg" id="mem-r${i}" placeholder="Reg. No." autocomplete="off" aria-label="Member ${i + 1} registration number"></div>`).join("");
+const TEAM = [["Vishal Karun", "24BCE10517"], ["Kriti Sinha", "24BCE10209"], ["Ashutosh Kumar", "24BCE10498"], ["Anjali Rajput", "24BCE10689"], ["Bhini Dua", "24BCE10669"], ["Tanmay Ajit Jha", "24BCE10565"]];
+team.innerHTML = Array.from({ length: 6 }, (_, i) => `<div class="member"><span class="num">0${i + 1}</span><b class="mname">${TEAM[i][0]}</b><span class="mreg">${TEAM[i][1]}</span></div>`).join("");
 $$(".fld").forEach((f) => { f.value = store.get(f.id, ""); f.addEventListener("input", () => store.set(f.id, f.value)); });
 
 // roadmap
